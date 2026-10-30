@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing } from '../styles/theme';
 
 /**
  * Componente de campo de texto reutilizable con soporte para etiquetas,
@@ -41,7 +42,7 @@ export function InputWithValidation({
           <Ionicons
             name={iconName}
             size={20}
-            color={hasError ? '#E11D48' : '#6B6B6B'}
+            color={hasError ? colors.errorText : colors.textSecondary}
             style={styles.icon}
           />
         )}
@@ -50,7 +51,7 @@ export function InputWithValidation({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#9E9E9E"
+          placeholderTextColor={colors.textMuted}
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
           maxLength={maxLength}
@@ -70,28 +71,28 @@ export function InputWithValidation({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
     width: '100%',
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E1E1E',
-    marginBottom: 6,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 48,
     borderWidth: 1.5,
-    borderColor: '#E2E2E2',
+    borderColor: colors.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.sm + 4,
   },
   inputWrapperError: {
-    borderColor: '#E11D48',
-    backgroundColor: '#FFF1F2',
+    borderColor: colors.errorText,
+    backgroundColor: colors.errorBg,
   },
   inputWrapperDisabled: {
     backgroundColor: '#F5F5F5',
@@ -104,22 +105,22 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     fontSize: 15,
-    color: '#1E1E1E',
+    color: colors.textPrimary,
   },
   inputDisabledText: {
-    color: '#9E9E9E',
+    color: colors.textMuted,
   },
   errorText: {
-    color: '#E11D48',
+    color: colors.errorText,
     fontSize: 12,
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: spacing.xs,
     marginLeft: 2,
   },
   helperText: {
-    color: '#6B6B6B',
+    color: colors.textSecondary,
     fontSize: 12,
-    marginTop: 4,
+    marginTop: spacing.xs,
     marginLeft: 2,
   },
 });

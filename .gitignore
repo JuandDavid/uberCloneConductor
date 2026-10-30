@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Expo y Builds
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Variables de entorno y secretos locales
+.env
+.env.local
+.env.*.local
+
+# Logs y Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# Carpetas nativas generadas
+/ios
+/android
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+*.pem

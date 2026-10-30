@@ -70,4 +70,6 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 ## 👥 5. Flujo de Trabajo Colaborativo (Git)
 El proyecto se desarrolla bajo un esquema colaborativo riguroso de 20 commits divididos equitativamente entre los dos integrantes (10 commits Juan Felipe / 10 commits Juan David), utilizando ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`) y verificación continua de compilación.
 
-Para más detalles consultar [Guía Maestra de Entrega 1](file:///c:/Users/Juan%20David/uberCloneConductor/docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md).
+Para más información, consultar:
+- [Convenciones de Git y Criterios de Aceptación](file:///c:/Users/Juan%20David/uberCloneConductor/docs/CONVENCIONES_GIT_Y_CRITERIOS.md)
+- [Guía Maestra de Entrega 1](file:///c:/Users/Juan%20David/uberCloneConductor/docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md)

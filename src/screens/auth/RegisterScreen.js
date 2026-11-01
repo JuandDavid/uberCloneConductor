@@ -6,8 +6,10 @@ import {
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing } from '../../styles/theme';
 import { InputWithValidation } from '../../components/InputWithValidation';
 import { CustomButton } from '../../components/CustomButton';
@@ -41,10 +43,39 @@ export function RegisterScreen({ navigation }) {
   // --- ESTADO DE ERRORES EN LÍNEA ---
   const [errors, setErrors] = useState({});
 
+  // --- SELECCIÓN DE FOTO DE PERFIL (EXPO-IMAGE-PICKER) ---
+  const pickImage = async (type) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0]?.uri) {
+        const uri = result.assets[0].uri;
+        if (type === 'personal') {
+          setPersonal((p) => ({ ...p, photoUri: uri }));
+          if (errors.personalPhoto) {
+            setErrors((e) => ({ ...e, personalPhoto: null }));
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Error al seleccionar imagen:', err);
+    }
+  };
+
   // --- VALIDACIÓN DE DATOS PERSONALES (PESTAÑA 1) ---
   const validatePersonal = () => {
     const errs = {};
     const currentYear = new Date().getFullYear();
+
+    // 0. Foto de Perfil: obligatoria
+    if (!personal.photoUri) {
+      errs.personalPhoto = 'La foto de perfil es obligatoria';
+    }
 
     // 1. Nombre Completo: obligatorio, máx 50 caracteres, solo letras y espacios
     if (!personal.fullName.trim()) {
@@ -92,6 +123,7 @@ export function RegisterScreen({ navigation }) {
   const handleContinueToVehicle = () => {
     // Limpiar errores previos de datos personales
     const cleanErrors = { ...errors };
+    delete cleanErrors.personalPhoto;
     delete cleanErrors.fullName;
     delete cleanErrors.documentId;
     delete cleanErrors.phone;
@@ -182,6 +214,31 @@ export function RegisterScreen({ navigation }) {
               <Text style={styles.sectionSubtitle}>
                 Ingresa tu información básica de contacto e identificación ciudadana.
               </Text>
+
+              {/* Selector de Foto de Perfil con Expo Image Picker */}
+              <View style={styles.photoPickerContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.avatarButton,
+                    Boolean(errors.personalPhoto) && styles.avatarButtonError,
+                  ]}
+                  onPress={() => pickImage('personal')}
+                  activeOpacity={0.8}
+                >
+                  {personal.photoUri ? (
+                    <Image source={{ uri: personal.photoUri }} style={styles.avatarImage} />
+                  ) : (
+                    <View style={styles.avatarPlaceholder}>
+                      <Ionicons name="camera" size={32} color={colors.textSecondary} />
+                      <Text style={styles.avatarLabel}>Subir Foto</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <Text style={styles.photoHint}>Toca el círculo para cargar tu foto de perfil</Text>
+                {Boolean(errors.personalPhoto) && (
+                  <Text style={styles.errorInline}>{errors.personalPhoto}</Text>
+                )}
+              </View>
 
               {/* Nombre Completo */}
               <InputWithValidation
@@ -404,6 +461,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  photoPickerContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  avatarButton: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  avatarButtonError: {
+    borderColor: colors.errorText,
+    backgroundColor: colors.errorBg,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  photoHint: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 6,
+  },
+  errorInline: {
+    color: colors.errorText,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+    textAlign: 'center',
   },
 });
 

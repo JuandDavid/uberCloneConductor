@@ -9,16 +9,100 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../styles/theme';
+import { InputWithValidation } from '../../components/InputWithValidation';
+import { CustomButton } from '../../components/CustomButton';
+import { useAuth } from '../../context/AuthContext';
 
 /**
- * Pantalla de Registro de Conductor con barra de navegación por pestañas superiores.
- * Permite alternar entre:
- * 1. Personal: Datos personales y foto de perfil.
- * 2. Vehículo: Datos del carro, placa colombiana y categoría.
- * 3. Documentos: Licencia, SOAT y condiciones.
+ * Pantalla de Registro de Conductor.
+ * Pestaña 1: Datos Personales con validaciones en línea (Inline UX).
+ * 
+ * Reglas académicas estrictas (Docente Paula Andrea Muñoz Correa):
+ * 1. Los mensajes de error aparecen debajo de cada campo en texto rojo (#E11D48).
+ * 2. NUNCA usar ventanas emergentes de Alert para validar formularios.
+ * 3. El avance se bloquea si los campos no cumplen las expresiones regulares.
  */
 export function RegisterScreen({ navigation }) {
+  const { registerDriver } = useAuth();
   const [activeTab, setActiveTab] = useState(0); // 0: Personal, 1: Vehículo, 2: Documentos
+
+  // --- ESTADO: Pestaña 1 (Datos Personales) ---
+  const [personal, setPersonal] = useState({
+    fullName: '',
+    documentId: '',
+    phone: '',
+    birthDate: '2000-01-01',
+    gender: 'Masculino',
+    email: '',
+    language: 'es',
+    photoUri: null,
+  });
+
+  // --- ESTADO DE ERRORES EN LÍNEA ---
+  const [errors, setErrors] = useState({});
+
+  // --- VALIDACIÓN DE DATOS PERSONALES (PESTAÑA 1) ---
+  const validatePersonal = () => {
+    const errs = {};
+    const currentYear = new Date().getFullYear();
+
+    // 1. Nombre Completo: obligatorio, máx 50 caracteres, solo letras y espacios
+    if (!personal.fullName.trim()) {
+      errs.fullName = 'El nombre completo es obligatorio';
+    } else if (personal.fullName.length > 50) {
+      errs.fullName = 'Máximo 50 caracteres permitidos';
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(personal.fullName)) {
+      errs.fullName = 'Solo se permiten letras y espacios';
+    }
+
+    // 2. Documento de Identidad: numérico, entre 6 y 10 dígitos
+    if (!personal.documentId.trim()) {
+      errs.documentId = 'El documento de identidad es obligatorio';
+    } else if (!/^\d{6,10}$/.test(personal.documentId.trim())) {
+      errs.documentId = 'Debe ser numérico de 6 a 10 dígitos';
+    }
+
+    // 3. Celular: numérico, exactamente 10 dígitos (formato estándar Colombia)
+    if (!personal.phone.trim()) {
+      errs.phone = 'El número de celular es obligatorio';
+    } else if (!/^\d{10}$/.test(personal.phone.trim())) {
+      errs.phone = 'Debe contener exactamente 10 dígitos';
+    }
+
+    // 4. Fecha de Nacimiento: mayor de 18 años
+    const birthYear = parseInt((personal.birthDate || '').split('-')[0], 10);
+    if (!birthYear || isNaN(birthYear)) {
+      errs.birthDate = 'Formato de fecha inválido (AAAA-MM-DD)';
+    } else if (currentYear - birthYear < 18) {
+      errs.birthDate = 'El conductor debe ser mayor de 18 años';
+    }
+
+    // 5. Correo Electrónico: formato válido con @ y dominio
+    if (!personal.email.trim()) {
+      errs.email = 'El correo electrónico es obligatorio';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personal.email.trim())) {
+      errs.email = 'Formato de correo inválido (ejemplo@dominio.com)';
+    }
+
+    setErrors((prev) => ({ ...prev, ...errs }));
+    return Object.keys(errs).length === 0;
+  };
+
+  // Manejador para continuar a la siguiente pestaña
+  const handleContinueToVehicle = () => {
+    // Limpiar errores previos de datos personales
+    const cleanErrors = { ...errors };
+    delete cleanErrors.fullName;
+    delete cleanErrors.documentId;
+    delete cleanErrors.phone;
+    delete cleanErrors.birthDate;
+    delete cleanErrors.email;
+    setErrors(cleanErrors);
+
+    if (validatePersonal()) {
+      setActiveTab(1);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -50,7 +134,11 @@ export function RegisterScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.tabItem, activeTab === 1 && styles.tabItemActive]}
-            onPress={() => setActiveTab(1)}
+            onPress={() => {
+              if (validatePersonal()) {
+                setActiveTab(1);
+              }
+            }}
             activeOpacity={0.7}
           >
             <Ionicons
@@ -84,24 +172,100 @@ export function RegisterScreen({ navigation }) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* PESTAÑA 1: DATOS PERSONALES */}
           {activeTab === 0 && (
             <View style={styles.tabContentContainer}>
               <View style={styles.sectionHeaderRow}>
                 <Ionicons name="person-circle-outline" size={24} color={colors.black} />
-                <Text style={styles.sectionHeader}>1. Datos Personales</Text>
+                <Text style={styles.sectionHeader}>Datos Personales</Text>
               </View>
               <Text style={styles.sectionSubtitle}>
-                Ingresa tus datos básicos de identificación, contacto y fotografía de perfil.
+                Ingresa tu información básica de contacto e identificación ciudadana.
               </Text>
-              <View style={styles.placeholderCard}>
-                <Ionicons name="create-outline" size={32} color={colors.textSecondary} />
-                <Text style={styles.placeholderCardText}>
-                  Formulario de Datos Personales (Commit 14)
-                </Text>
-              </View>
+
+              {/* Nombre Completo */}
+              <InputWithValidation
+                label="Nombre Completo"
+                placeholder="Ej: Juan Felipe Morales"
+                value={personal.fullName}
+                onChangeText={(txt) => {
+                  setPersonal((p) => ({ ...p, fullName: txt }));
+                  if (errors.fullName) setErrors((e) => ({ ...e, fullName: null }));
+                }}
+                error={errors.fullName}
+                iconName="person-outline"
+                maxLength={50}
+              />
+
+              {/* Documento de Identidad */}
+              <InputWithValidation
+                label="Documento de Identidad (Cédula: 6 a 10 dígitos)"
+                placeholder="Ej: 1098765432"
+                value={personal.documentId}
+                onChangeText={(txt) => {
+                  setPersonal((p) => ({ ...p, documentId: txt }));
+                  if (errors.documentId) setErrors((e) => ({ ...e, documentId: null }));
+                }}
+                keyboardType="numeric"
+                error={errors.documentId}
+                iconName="card-outline"
+                maxLength={10}
+              />
+
+              {/* Teléfono Celular */}
+              <InputWithValidation
+                label="Número de Celular (10 dígitos)"
+                placeholder="Ej: 3001234567"
+                value={personal.phone}
+                onChangeText={(txt) => {
+                  setPersonal((p) => ({ ...p, phone: txt }));
+                  if (errors.phone) setErrors((e) => ({ ...e, phone: null }));
+                }}
+                keyboardType="phone-pad"
+                error={errors.phone}
+                iconName="call-outline"
+                maxLength={10}
+              />
+
+              {/* Fecha de Nacimiento */}
+              <InputWithValidation
+                label="Fecha de Nacimiento (AAAA-MM-DD)"
+                placeholder="2000-05-15"
+                value={personal.birthDate}
+                onChangeText={(txt) => {
+                  setPersonal((p) => ({ ...p, birthDate: txt }));
+                  if (errors.birthDate) setErrors((e) => ({ ...e, birthDate: null }));
+                }}
+                error={errors.birthDate}
+                helperText="Requisito: el conductor debe tener al menos 18 años"
+                iconName="calendar-outline"
+              />
+
+              {/* Correo Electrónico */}
+              <InputWithValidation
+                label="Correo Electrónico"
+                placeholder="conductor@ejemplo.com"
+                value={personal.email}
+                onChangeText={(txt) => {
+                  setPersonal((p) => ({ ...p, email: txt }));
+                  if (errors.email) setErrors((e) => ({ ...e, email: null }));
+                }}
+                keyboardType="email-address"
+                error={errors.email}
+                iconName="mail-outline"
+                autoCapitalize="none"
+              />
+
+              {/* Botón de continuación a Vehículo */}
+              <CustomButton
+                title="Continuar a Vehículo"
+                onPress={handleContinueToVehicle}
+                style={{ marginTop: spacing.md }}
+              />
             </View>
           )}
 
+          {/* PESTAÑA 2: VEHÍCULO */}
           {activeTab === 1 && (
             <View style={styles.tabContentContainer}>
               <View style={styles.sectionHeaderRow}>
@@ -120,6 +284,7 @@ export function RegisterScreen({ navigation }) {
             </View>
           )}
 
+          {/* PESTAÑA 3: DOCUMENTOS */}
           {activeTab === 2 && (
             <View style={styles.tabContentContainer}>
               <View style={styles.sectionHeaderRow}>

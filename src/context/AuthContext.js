@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveDriver } from '../services/dbService';
 
 const AuthContext = createContext();
 
@@ -82,11 +83,15 @@ export function AuthProvider({ children }) {
     loadStoredData();
   }, []);
 
-  // Guardar en AsyncStorage para mantener sesión local
+  // Guardar en AsyncStorage y sincronizar en Firestore (Colección 'drivers')
   const persistDriver = async (updatedDriver) => {
     setDriver(updatedDriver);
     if (updatedDriver) {
       await AsyncStorage.setItem(STORAGE_KEYS.DRIVER_SESSION, JSON.stringify(updatedDriver));
+      // Sincronizar automáticamente en la colección 'drivers' de Firestore en segundo plano
+      saveDriver(updatedDriver).catch((err) => {
+        console.warn('AuthContext [persistDriver]: Error al sincronizar con Firestore:', err.message);
+      });
     } else {
       await AsyncStorage.removeItem(STORAGE_KEYS.DRIVER_SESSION);
     }

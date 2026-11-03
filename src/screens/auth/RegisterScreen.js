@@ -73,6 +73,12 @@ export function RegisterScreen({ navigation }) {
             setErrors((e) => ({ ...e, personalPhoto: null }));
           }
         }
+        if (type === 'vehicle') {
+          setVehicle((v) => ({ ...v, photoUri: uri }));
+          if (errors.vehiclePhoto) {
+            setErrors((e) => ({ ...e, vehiclePhoto: null }));
+          }
+        }
       }
     } catch (err) {
       console.warn('Error al seleccionar imagen:', err);
@@ -153,21 +159,34 @@ export function RegisterScreen({ navigation }) {
     const errs = {};
     const currentYear = new Date().getFullYear();
 
-    // 1. Marca: obligatoria, máx 30 caracteres
+    // 0. Foto del vehículo con placa visible: obligatoria
+    if (!vehicle.photoUri) {
+      errs.vehiclePhoto = 'La foto del vehículo con placa visible es obligatoria';
+    }
+
+    // 1. Placa del Vehículo: formato colombiano estándar (3 letras y 3 números, Ej: ABC123)
+    const cleanPlate = (vehicle.plate || '').toUpperCase().trim();
+    if (!cleanPlate) {
+      errs.plate = 'La placa del vehículo es obligatoria';
+    } else if (!/^[A-Z]{3}\d{3}$/.test(cleanPlate)) {
+      errs.plate = 'Formato de placa colombiano inválido (Ej: ABC123, 3 letras y 3 números)';
+    }
+
+    // 2. Marca: obligatoria, máx 30 caracteres
     if (!vehicle.make.trim()) {
       errs.make = 'La marca del vehículo es obligatoria';
     } else if (vehicle.make.length > 30) {
       errs.make = 'Máximo 30 caracteres permitidos';
     }
 
-    // 2. Modelo: obligatorio, máx 30 caracteres
+    // 3. Modelo: obligatorio, máx 30 caracteres
     if (!vehicle.model.trim()) {
       errs.model = 'El modelo del vehículo es obligatorio';
     } else if (vehicle.model.length > 30) {
       errs.model = 'Máximo 30 caracteres permitidos';
     }
 
-    // 3. Año: 4 dígitos numéricos, menor o igual al año actual
+    // 4. Año: 4 dígitos numéricos, menor o igual al año actual
     const vehYear = parseInt(vehicle.year, 10);
     if (!vehYear || (vehicle.year || '').trim().length !== 4) {
       errs.year = 'El año debe contener 4 dígitos';
@@ -175,7 +194,7 @@ export function RegisterScreen({ navigation }) {
       errs.year = `No puede ser mayor al año actual (${currentYear})`;
     }
 
-    // 4. Capacidad de Pasajeros: numérica >= 1, y si es XL mínimo 6
+    // 5. Capacidad de Pasajeros: numérica >= 1, y si es XL mínimo 6
     const cap = parseInt(vehicle.capacity, 10);
     if (!cap || isNaN(cap) || cap < 1) {
       errs.capacity = 'Ingresa una capacidad de pasajeros válida (mínimo 1)';
@@ -190,6 +209,8 @@ export function RegisterScreen({ navigation }) {
   // Manejador para continuar a la pestaña 3
   const handleContinueToDocs = () => {
     const cleanErrors = { ...errors };
+    delete cleanErrors.vehiclePhoto;
+    delete cleanErrors.plate;
     delete cleanErrors.make;
     delete cleanErrors.model;
     delete cleanErrors.year;
@@ -431,6 +452,45 @@ export function RegisterScreen({ navigation }) {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* Foto del vehículo con placa */}
+              <View style={styles.docUploadBox}>
+                <TouchableOpacity
+                  style={[
+                    styles.uploadBtn,
+                    Boolean(errors.vehiclePhoto) && styles.uploadBtnError,
+                  ]}
+                  onPress={() => pickImage('vehicle')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="image-outline" size={24} color={colors.textPrimary} />
+                  <Text style={styles.uploadBtnText}>
+                    {vehicle.photoUri ? 'Cambiar Foto del Vehículo' : 'Subir Foto con Placa Visible'}
+                  </Text>
+                </TouchableOpacity>
+                {vehicle.photoUri && (
+                  <Image source={{ uri: vehicle.photoUri }} style={styles.previewThumb} />
+                )}
+                {Boolean(errors.vehiclePhoto) && (
+                  <Text style={styles.errorInline}>{errors.vehiclePhoto}</Text>
+                )}
+              </View>
+
+              {/* Placa Colombiana */}
+              <InputWithValidation
+                label="Placa del Vehículo (Formato Colombiano: ABC123)"
+                placeholder="ABC123"
+                value={vehicle.plate}
+                onChangeText={(txt) => {
+                  const upperTxt = txt.toUpperCase();
+                  setVehicle((v) => ({ ...v, plate: upperTxt }));
+                  if (errors.plate) setErrors((e) => ({ ...e, plate: null }));
+                }}
+                error={errors.plate}
+                iconName="barcode-outline"
+                autoCapitalize="characters"
+                maxLength={6}
+              />
 
               {/* Marca */}
               <InputWithValidation
@@ -714,6 +774,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     marginTop: spacing.md,
+  },
+  docUploadBox: {
+    marginBottom: spacing.md,
+  },
+  uploadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 8,
+    backgroundColor: '#FAFAFA',
+  },
+  uploadBtnError: {
+    borderColor: colors.errorText,
+    backgroundColor: colors.errorBg,
+  },
+  uploadBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  previewThumb: {
+    width: '100%',
+    height: 140,
+    borderRadius: 8,
+    marginTop: spacing.sm,
+    backgroundColor: '#EEEEEE',
   },
 });
 

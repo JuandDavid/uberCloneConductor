@@ -165,7 +165,7 @@ export function RegisterScreen({ navigation }) {
     }
 
     // 1. Placa del Vehículo: formato colombiano estándar (3 letras y 3 números, Ej: ABC123)
-    const cleanPlate = (vehicle.plate || '').toUpperCase().trim();
+    const cleanPlate = (vehicle.plate || '').toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
     if (!cleanPlate) {
       errs.plate = 'La placa del vehículo es obligatoria';
     } else if (!/^[A-Z]{3}\d{3}$/.test(cleanPlate)) {
@@ -255,6 +255,8 @@ export function RegisterScreen({ navigation }) {
             onPress={() => {
               if (validatePersonal()) {
                 setActiveTab(1);
+              } else {
+                setActiveTab(0);
               }
             }}
             activeOpacity={0.7}
@@ -271,7 +273,15 @@ export function RegisterScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.tabItem, activeTab === 2 && styles.tabItemActive]}
-            onPress={() => setActiveTab(2)}
+            onPress={() => {
+              if (!validatePersonal()) {
+                setActiveTab(0);
+              } else if (!validateVehicle()) {
+                setActiveTab(1);
+              } else {
+                setActiveTab(2);
+              }
+            }}
             activeOpacity={0.7}
           >
             <Ionicons
@@ -482,8 +492,9 @@ export function RegisterScreen({ navigation }) {
                 placeholder="ABC123"
                 value={vehicle.plate}
                 onChangeText={(txt) => {
-                  const upperTxt = txt.toUpperCase();
-                  setVehicle((v) => ({ ...v, plate: upperTxt }));
+                  // Sanitizar automáticamente: pasar a mayúsculas, remover espacios y caracteres especiales
+                  const sanitized = txt.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+                  setVehicle((v) => ({ ...v, plate: sanitized }));
                   if (errors.plate) setErrors((e) => ({ ...e, plate: null }));
                 }}
                 error={errors.plate}

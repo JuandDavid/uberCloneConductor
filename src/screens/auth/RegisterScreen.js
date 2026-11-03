@@ -40,6 +40,18 @@ export function RegisterScreen({ navigation }) {
     photoUri: null,
   });
 
+  // --- ESTADO: Pestaña 2 (Vehículo) ---
+  const [vehicle, setVehicle] = useState({
+    category: 'economy', // economy | xl | premium
+    plate: '',
+    make: '',
+    model: '',
+    year: '2021',
+    color: 'Negro',
+    capacity: '4',
+    photoUri: null,
+  });
+
   // --- ESTADO DE ERRORES EN LÍNEA ---
   const [errors, setErrors] = useState({});
 
@@ -133,6 +145,59 @@ export function RegisterScreen({ navigation }) {
 
     if (validatePersonal()) {
       setActiveTab(1);
+    }
+  };
+
+  // --- VALIDACIÓN DE VEHÍCULO (PESTAÑA 2) ---
+  const validateVehicle = () => {
+    const errs = {};
+    const currentYear = new Date().getFullYear();
+
+    // 1. Marca: obligatoria, máx 30 caracteres
+    if (!vehicle.make.trim()) {
+      errs.make = 'La marca del vehículo es obligatoria';
+    } else if (vehicle.make.length > 30) {
+      errs.make = 'Máximo 30 caracteres permitidos';
+    }
+
+    // 2. Modelo: obligatorio, máx 30 caracteres
+    if (!vehicle.model.trim()) {
+      errs.model = 'El modelo del vehículo es obligatorio';
+    } else if (vehicle.model.length > 30) {
+      errs.model = 'Máximo 30 caracteres permitidos';
+    }
+
+    // 3. Año: 4 dígitos numéricos, menor o igual al año actual
+    const vehYear = parseInt(vehicle.year, 10);
+    if (!vehYear || (vehicle.year || '').trim().length !== 4) {
+      errs.year = 'El año debe contener 4 dígitos';
+    } else if (vehYear > currentYear) {
+      errs.year = `No puede ser mayor al año actual (${currentYear})`;
+    }
+
+    // 4. Capacidad de Pasajeros: numérica >= 1, y si es XL mínimo 6
+    const cap = parseInt(vehicle.capacity, 10);
+    if (!cap || isNaN(cap) || cap < 1) {
+      errs.capacity = 'Ingresa una capacidad de pasajeros válida (mínimo 1)';
+    } else if (vehicle.category === 'xl' && cap < 6) {
+      errs.capacity = 'La categoría XL exige una capacidad mínima de 6 pasajeros';
+    }
+
+    setErrors((prev) => ({ ...prev, ...errs }));
+    return Object.keys(errs).length === 0;
+  };
+
+  // Manejador para continuar a la pestaña 3
+  const handleContinueToDocs = () => {
+    const cleanErrors = { ...errors };
+    delete cleanErrors.make;
+    delete cleanErrors.model;
+    delete cleanErrors.year;
+    delete cleanErrors.capacity;
+    setErrors(cleanErrors);
+
+    if (validateVehicle()) {
+      setActiveTab(2);
     }
   };
 
@@ -330,13 +395,119 @@ export function RegisterScreen({ navigation }) {
                 <Text style={styles.sectionHeader}>2. Información del Vehículo</Text>
               </View>
               <Text style={styles.sectionSubtitle}>
-                Registra la placa colombiana, modelo, año, categoría y capacidad del vehículo.
+                Especifica la categoría, modelo, año y capacidad de pasajeros de tu automóvil.
               </Text>
-              <View style={styles.placeholderCard}>
-                <Ionicons name="speedometer-outline" size={32} color={colors.textSecondary} />
-                <Text style={styles.placeholderCardText}>
-                  Formulario de Vehículo (Commit 16)
-                </Text>
+
+              {/* Selector de Categoría */}
+              <Text style={styles.fieldLabel}>Categoría del Servicio</Text>
+              <View style={styles.categoryRow}>
+                {[
+                  { id: 'economy', label: 'Economy' },
+                  { id: 'xl', label: 'XL (6+ Pasajeros)' },
+                  { id: 'premium', label: 'Premium' },
+                ].map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.catBadge,
+                      vehicle.category === cat.id && styles.catBadgeActive,
+                    ]}
+                    onPress={() => {
+                      setVehicle((v) => ({ ...v, category: cat.id }));
+                      if (errors.capacity) {
+                        setErrors((e) => ({ ...e, capacity: null }));
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.catBadgeText,
+                        vehicle.category === cat.id && styles.catBadgeTextActive,
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Marca */}
+              <InputWithValidation
+                label="Marca del Vehículo"
+                placeholder="Ej: Chevrolet"
+                value={vehicle.make}
+                onChangeText={(txt) => {
+                  setVehicle((v) => ({ ...v, make: txt }));
+                  if (errors.make) setErrors((e) => ({ ...e, make: null }));
+                }}
+                error={errors.make}
+                iconName="pricetag-outline"
+                maxLength={30}
+              />
+
+              {/* Modelo */}
+              <InputWithValidation
+                label="Modelo / Línea"
+                placeholder="Ej: Onix Sedan"
+                value={vehicle.model}
+                onChangeText={(txt) => {
+                  setVehicle((v) => ({ ...v, model: txt }));
+                  if (errors.model) setErrors((e) => ({ ...e, model: null }));
+                }}
+                error={errors.model}
+                iconName="car-sport-outline"
+                maxLength={30}
+              />
+
+              {/* Año de Fabricación */}
+              <InputWithValidation
+                label="Año de Fabricación (4 dígitos)"
+                placeholder="2021"
+                value={vehicle.year}
+                onChangeText={(txt) => {
+                  setVehicle((v) => ({ ...v, year: txt }));
+                  if (errors.year) setErrors((e) => ({ ...e, year: null }));
+                }}
+                keyboardType="numeric"
+                error={errors.year}
+                iconName="calendar-number-outline"
+                maxLength={4}
+              />
+
+              {/* Capacidad de Pasajeros */}
+              <InputWithValidation
+                label="Capacidad de Pasajeros"
+                placeholder="4"
+                value={vehicle.capacity}
+                onChangeText={(txt) => {
+                  setVehicle((v) => ({ ...v, capacity: txt }));
+                  if (errors.capacity) setErrors((e) => ({ ...e, capacity: null }));
+                }}
+                keyboardType="numeric"
+                error={errors.capacity}
+                helperText={
+                  vehicle.category === 'xl'
+                    ? 'La categoría XL requiere al menos 6 pasajeros'
+                    : 'Cantidad de puestos disponibles para pasajeros'
+                }
+                iconName="people-outline"
+                maxLength={2}
+              />
+
+              {/* Botones de navegación */}
+              <View style={styles.buttonRow}>
+                <CustomButton
+                  title="Atrás"
+                  variant="secondary"
+                  onPress={() => setActiveTab(0)}
+                  style={{ flex: 1 }}
+                />
+                <CustomButton
+                  title="Continuar"
+                  onPress={handleContinueToDocs}
+                  style={{ flex: 2 }}
+                />
               </View>
             </View>
           )}
@@ -506,6 +677,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
     textAlign: 'center',
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  catBadge: {
+    flex: 1,
+    paddingVertical: spacing.sm + 2,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+  },
+  catBadgeActive: {
+    borderColor: colors.black,
+    backgroundColor: colors.black,
+  },
+  catBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  catBadgeTextActive: {
+    color: colors.white,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
   },
 });
 

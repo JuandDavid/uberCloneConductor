@@ -54,6 +54,9 @@ export function RegisterScreen({ navigation }) {
 
   // --- ESTADO DE ERRORES EN LÍNEA ---
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredDriverData, setRegisteredDriverData] = useState(null);
 
   // --- SELECCIÓN DE FOTO DE PERFIL (EXPO-IMAGE-PICKER) ---
   const pickImage = async (type) => {
@@ -222,78 +225,205 @@ export function RegisterScreen({ navigation }) {
     }
   };
 
+  // --- REGISTRO FINAL EN FIRESTORE (COLECCIÓN 'drivers') ---
+  const handleRegisterDriver = async () => {
+    // 1. Validar Pestaña 1
+    const isPersonalValid = validatePersonal();
+    if (!isPersonalValid) {
+      setActiveTab(0);
+      return;
+    }
+
+    // 2. Validar Pestaña 2
+    const isVehicleValid = validateVehicle();
+    if (!isVehicleValid) {
+      setActiveTab(1);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const cleanPlate = (vehicle.plate || '').toUpperCase().trim();
+      const payload = {
+        personal: {
+          ...personal,
+          fullName: personal.fullName.trim(),
+          documentId: personal.documentId.trim(),
+          phone: personal.phone.trim(),
+          email: personal.email.trim(),
+        },
+        vehicle: {
+          ...vehicle,
+          plate: cleanPlate,
+          make: vehicle.make.trim(),
+          model: vehicle.model.trim(),
+          capacity: parseInt(vehicle.capacity, 10),
+        },
+        documents: {
+          termsAccepted: true,
+        },
+      };
+
+      const result = await registerDriver(payload);
+      setRegisteredDriverData(result);
+      setRegistrationSuccess(true);
+    } catch (err) {
+      console.warn('Error al registrar conductor en Firestore:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Encabezado */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Registro de Conductor</Text>
-          <Text style={styles.headerSubtitle}>
-            Completa las 3 secciones requeridas para tu solicitud
-          </Text>
-        </View>
-
-        {/* Barra de navegación por pestañas (Tab Bar) */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[styles.tabItem, activeTab === 0 && styles.tabItemActive]}
-            onPress={() => setActiveTab(0)}
-            activeOpacity={0.7}
+        {registrationSuccess ? (
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Ionicons
-              name="person"
-              size={18}
-              color={activeTab === 0 ? colors.black : colors.textMuted}
-            />
-            <Text style={[styles.tabLabel, activeTab === 0 && styles.tabLabelActive]}>
-              1. Personal
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.successCard}>
+              <Ionicons name="checkmark-circle" size={68} color={colors.online} />
+              <Text style={styles.successTitle}>¡Registro Guardado en Firestore!</Text>
+              <Text style={styles.successSubtitle}>
+                Los datos del conductor han sido guardados exitosamente en la colección 'drivers'.
+              </Text>
 
-          <TouchableOpacity
-            style={[styles.tabItem, activeTab === 1 && styles.tabItemActive]}
-            onPress={() => {
-              if (validatePersonal()) {
-                setActiveTab(1);
-              } else {
-                setActiveTab(0);
-              }
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="car-sport"
-              size={18}
-              color={activeTab === 1 ? colors.black : colors.textMuted}
-            />
-            <Text style={[styles.tabLabel, activeTab === 1 && styles.tabLabelActive]}>
-              2. Vehículo
-            </Text>
-          </TouchableOpacity>
+              {/* Badge de estado obligatorio (Docente Paula Andrea) */}
+              <View style={styles.statusBadge}>
+                <Ionicons name="time-outline" size={16} color="#B45309" />
+                <Text style={styles.statusBadgeText}>
+                  Estado: pending_approval
+                </Text>
+              </View>
 
-          <TouchableOpacity
-            style={[styles.tabItem, activeTab === 2 && styles.tabItemActive]}
-            onPress={() => {
-              if (!validatePersonal()) {
-                setActiveTab(0);
-              } else if (!validateVehicle()) {
-                setActiveTab(1);
-              } else {
-                setActiveTab(2);
-              }
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="document-text"
-              size={18}
-              color={activeTab === 2 ? colors.black : colors.textMuted}
-            />
-            <Text style={[styles.tabLabel, activeTab === 2 && styles.tabLabelActive]}>
-              3. Documentos
-            </Text>
-          </TouchableOpacity>
-        </View>
+              {/* Resumen de los datos persistidos */}
+              <View style={styles.detailBox}>
+                <Text style={styles.detailSectionTitle}>Resumen del Conductor Registrado:</Text>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Nombre:</Text>
+                  <Text style={styles.detailValue}>{registeredDriverData?.fullName || personal.fullName}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Cédula:</Text>
+                  <Text style={styles.detailValue}>{registeredDriverData?.documentId || personal.documentId}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Celular:</Text>
+                  <Text style={styles.detailValue}>{registeredDriverData?.phone || personal.phone}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Correo:</Text>
+                  <Text style={styles.detailValue}>{registeredDriverData?.email || personal.email}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Vehículo:</Text>
+                  <Text style={styles.detailValue}>
+                    {registeredDriverData?.vehicle?.make || vehicle.make} {registeredDriverData?.vehicle?.model || vehicle.model} ({registeredDriverData?.vehicle?.year || vehicle.year})
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Placa:</Text>
+                  <Text style={styles.detailValueBold}>{registeredDriverData?.vehicle?.plate || vehicle.plate}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Categoría:</Text>
+                  <Text style={styles.detailValue}>
+                    {(registeredDriverData?.vehicle?.category || vehicle.category).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Capacidad:</Text>
+                  <Text style={styles.detailValue}>
+                    {registeredDriverData?.vehicle?.capacity || vehicle.capacity} Pasajeros
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Colección Nube:</Text>
+                  <Text style={styles.detailValueTag}>drivers</Text>
+                </View>
+              </View>
+
+              <CustomButton
+                title="Modificar Datos / Volver al Formulario"
+                variant="outline"
+                onPress={() => setRegistrationSuccess(false)}
+                style={{ width: '100%', marginTop: spacing.md }}
+              />
+            </View>
+          </ScrollView>
+        ) : (
+          <>
+            {/* Encabezado */}
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Registro de Conductor</Text>
+              <Text style={styles.headerSubtitle}>
+                Completa las secciones requeridas para tu solicitud
+              </Text>
+            </View>
+
+            {/* Barra de navegación por pestañas (Tab Bar) */}
+            <View style={styles.tabBar}>
+              <TouchableOpacity
+                style={[styles.tabItem, activeTab === 0 && styles.tabItemActive]}
+                onPress={() => setActiveTab(0)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="person"
+                  size={18}
+                  color={activeTab === 0 ? colors.black : colors.textMuted}
+                />
+                <Text style={[styles.tabLabel, activeTab === 0 && styles.tabLabelActive]}>
+                  1. Personal
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabItem, activeTab === 1 && styles.tabItemActive]}
+                onPress={() => {
+                  if (validatePersonal()) {
+                    setActiveTab(1);
+                  } else {
+                    setActiveTab(0);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="car-sport"
+                  size={18}
+                  color={activeTab === 1 ? colors.black : colors.textMuted}
+                />
+                <Text style={[styles.tabLabel, activeTab === 1 && styles.tabLabelActive]}>
+                  2. Vehículo
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabItem, activeTab === 2 && styles.tabItemActive]}
+                onPress={() => {
+                  if (!validatePersonal()) {
+                    setActiveTab(0);
+                  } else if (!validateVehicle()) {
+                    setActiveTab(1);
+                  } else {
+                    setActiveTab(2);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="document-text"
+                  size={18}
+                  color={activeTab === 2 ? colors.black : colors.textMuted}
+                />
+                <Text style={[styles.tabLabel, activeTab === 2 && styles.tabLabelActive]}>
+                  3. Documentos
+                </Text>
+              </TouchableOpacity>
+            </View>
 
         {/* Contenido según la pestaña activa */}
         <ScrollView
@@ -566,17 +696,20 @@ export function RegisterScreen({ navigation }) {
                 maxLength={2}
               />
 
-              {/* Botones de navegación */}
+              {/* Botones de navegación y registro */}
               <View style={styles.buttonRow}>
                 <CustomButton
                   title="Atrás"
                   variant="secondary"
                   onPress={() => setActiveTab(0)}
+                  disabled={isSubmitting}
                   style={{ flex: 1 }}
                 />
                 <CustomButton
-                  title="Continuar"
-                  onPress={handleContinueToDocs}
+                  title="Registrar Conductor"
+                  onPress={handleRegisterDriver}
+                  loading={isSubmitting}
+                  disabled={isSubmitting}
                   style={{ flex: 2 }}
                 />
               </View>
@@ -602,6 +735,8 @@ export function RegisterScreen({ navigation }) {
             </View>
           )}
         </ScrollView>
+        </>
+      )}
       </View>
     </SafeAreaView>
   );
@@ -815,6 +950,97 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: spacing.sm,
     backgroundColor: '#EEEEEE',
+  },
+  successCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: spacing.xl,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  statusBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  detailBox: {
+    width: '100%',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    padding: spacing.md,
+    marginTop: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  detailSectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    paddingBottom: 6,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  detailValue: {
+    fontSize: 12,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    maxWidth: '60%',
+    textAlign: 'right',
+  },
+  detailValueBold: {
+    fontSize: 13,
+    color: colors.black,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  detailValueTag: {
+    fontSize: 11,
+    color: '#2563EB',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    fontWeight: '700',
+    overflow: 'hidden',
   },
 });
 

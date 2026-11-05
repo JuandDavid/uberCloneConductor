@@ -113,6 +113,16 @@ export function RegisterScreen({ navigation }) {
     photoUri: null,
   });
 
+  // --- ESTADO: Pestaña 3 (Documentación y Liquidación) ---
+  const [docs, setDocs] = useState({
+    licenseNumber: '',
+    licensePhotoUri: null,
+    soatPhotoUri: null,
+    tecnoPhotoUri: null,
+    mpEmail: '',
+    termsAccepted: true,
+  });
+
   // --- ESTADO DE ERRORES EN LÍNEA ---
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -325,13 +335,14 @@ export function RegisterScreen({ navigation }) {
     );
   };
 
-  // --- SELECCIÓN DE FOTO DE PERFIL (EXPO-IMAGE-PICKER) ---
+  // --- SELECCIÓN DE IMÁGENES Y DOCUMENTOS (EXPO-IMAGE-PICKER) ---
   const pickImage = async (type) => {
     try {
+      const isDocument = ['license', 'soat', 'tecno'].includes(type);
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [1, 1],
+        aspect: isDocument ? [4, 3] : [1, 1],
         quality: 0.7,
       });
 
@@ -342,11 +353,25 @@ export function RegisterScreen({ navigation }) {
           if (errors.personalPhoto) {
             setErrors((e) => ({ ...e, personalPhoto: null }));
           }
-        }
-        if (type === 'vehicle') {
+        } else if (type === 'vehicle') {
           setVehicle((v) => ({ ...v, photoUri: uri }));
           if (errors.vehiclePhoto) {
             setErrors((e) => ({ ...e, vehiclePhoto: null }));
+          }
+        } else if (type === 'license') {
+          setDocs((d) => ({ ...d, licensePhotoUri: uri }));
+          if (errors.licensePhoto) {
+            setErrors((e) => ({ ...e, licensePhoto: null }));
+          }
+        } else if (type === 'soat') {
+          setDocs((d) => ({ ...d, soatPhotoUri: uri }));
+          if (errors.soatPhoto) {
+            setErrors((e) => ({ ...e, soatPhoto: null }));
+          }
+        } else if (type === 'tecno') {
+          setDocs((d) => ({ ...d, tecnoPhotoUri: uri }));
+          if (errors.tecnoPhoto) {
+            setErrors((e) => ({ ...e, tecnoPhoto: null }));
           }
         }
       }
@@ -505,6 +530,51 @@ export function RegisterScreen({ navigation }) {
     }
   };
 
+  // --- VALIDACIÓN DE DOCUMENTACIÓN (PESTAÑA 3) ---
+  const validateDocs = () => {
+    const errs = {};
+    const currentYear = new Date().getFullYear();
+    const vehYear = parseInt(vehicle.year, 10) || currentYear;
+    const vehicleAge = currentYear - vehYear;
+
+    // 1. Número de Licencia de Conducción
+    if (!docs.licenseNumber.trim()) {
+      errs.licenseNumber = 'El número de licencia de conducción es obligatorio';
+    } else if (docs.licenseNumber.trim().length < 5 || docs.licenseNumber.trim().length > 20) {
+      errs.licenseNumber = 'Ingresa un número de licencia válido (5 a 20 caracteres)';
+    }
+
+    // 2. Foto de Licencia
+    if (!docs.licensePhotoUri) {
+      errs.licensePhoto = 'Debes adjuntar la foto legible de tu licencia de conducción';
+    }
+
+    // 3. Foto de SOAT
+    if (!docs.soatPhotoUri) {
+      errs.soatPhoto = 'Debes adjuntar la foto del SOAT vigente';
+    }
+
+    // 4. Técnico-mecánica (obligatoria si el vehículo tiene 5 o más años de antigüedad)
+    if (vehicleAge >= 5 && !docs.tecnoPhotoUri) {
+      errs.tecnoPhoto = 'Obligatoria para vehículos con 5 o más años de antigüedad';
+    }
+
+    // 5. Correo para Liquidaciones (Mercado Pago)
+    if (docs.mpEmail && docs.mpEmail.trim()) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(docs.mpEmail.trim())) {
+        errs.mpEmail = 'Formato de correo de pagos inválido (ejemplo@dominio.com)';
+      }
+    }
+
+    // 6. Aceptación de Términos y Comisión del 20%
+    if (!docs.termsAccepted) {
+      errs.terms = 'Debes aceptar los términos de servicio y la comisión del 20% para registrarte';
+    }
+
+    setErrors((prev) => ({ ...prev, ...errs }));
+    return Object.keys(errs).length === 0;
+  };
+
   // --- REGISTRO FINAL EN FIRESTORE (COLECCIÓN 'drivers') ---
   const handleRegisterDriver = async () => {
     // 1. Validar Pestaña 1
@@ -518,6 +588,13 @@ export function RegisterScreen({ navigation }) {
     const isVehicleValid = validateVehicle();
     if (!isVehicleValid) {
       setActiveTab(1);
+      return;
+    }
+
+    // 3. Validar Pestaña 3
+    const isDocsValid = validateDocs();
+    if (!isDocsValid) {
+      setActiveTab(2);
       return;
     }
 
@@ -540,6 +617,11 @@ export function RegisterScreen({ navigation }) {
           capacity: parseInt(vehicle.capacity, 10),
         },
         documents: {
+          licenseNumber: docs.licenseNumber.trim(),
+          licensePhotoUri: docs.licensePhotoUri,
+          soatPhotoUri: docs.soatPhotoUri,
+          tecnoPhotoUri: docs.tecnoPhotoUri,
+          mpEmail: (docs.mpEmail || '').trim(),
           termsAccepted: true,
         },
       };
@@ -621,6 +703,12 @@ export function RegisterScreen({ navigation }) {
                   <Text style={styles.detailLabel}>Capacidad:</Text>
                   <Text style={styles.detailValue}>
                     {registeredDriverData?.vehicle?.capacity || vehicle.capacity} Pasajeros
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Licencia:</Text>
+                  <Text style={styles.detailValueBold}>
+                    {registeredDriverData?.documents?.licenseNumber || docs.licenseNumber || 'Registrada'}
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
@@ -1019,7 +1107,7 @@ export function RegisterScreen({ navigation }) {
                 maxLength={2}
               />
 
-              {/* Botones de navegación y registro */}
+              {/* Botones de navegación de la Pestaña 2 */}
               <View style={styles.buttonRow}>
                 <CustomButton
                   title="Atrás"
@@ -1029,9 +1117,8 @@ export function RegisterScreen({ navigation }) {
                   style={{ flex: 1 }}
                 />
                 <CustomButton
-                  title="Registrar Conductor"
-                  onPress={handleRegisterDriver}
-                  loading={isSubmitting}
+                  title="Continuar a Documentos"
+                  onPress={handleContinueToDocs}
                   disabled={isSubmitting}
                   style={{ flex: 2 }}
                 />
@@ -1039,21 +1126,176 @@ export function RegisterScreen({ navigation }) {
             </View>
           )}
 
-          {/* PESTAÑA 3: DOCUMENTOS */}
+          {/* PESTAÑA 3: DOCUMENTOS Y LIQUIDACIÓN */}
           {activeTab === 2 && (
             <View style={styles.tabContentContainer}>
               <View style={styles.sectionHeaderRow}>
                 <Ionicons name="shield-checkmark-outline" size={24} color={colors.black} />
-                <Text style={styles.sectionHeader}>3. Documentación</Text>
+                <Text style={styles.sectionHeader}>Documentación y Liquidación</Text>
               </View>
               <Text style={styles.sectionSubtitle}>
-                Carga de licencia de conducción, SOAT y revisión técnico-mecánica.
+                Carga de licencia de conducción, SOAT, revisión técnico-mecánica y cuenta de pagos.
               </Text>
-              <View style={styles.placeholderCard}>
-                <Ionicons name="document-attach-outline" size={32} color={colors.textSecondary} />
-                <Text style={styles.placeholderCardText}>
-                  Módulo de Documentación y Términos
+
+              {/* Número de Licencia */}
+              <InputWithValidation
+                label="Número de Licencia de Conducción"
+                placeholder="Ej: C1-1098765432"
+                value={docs.licenseNumber}
+                onChangeText={(txt) => {
+                  setDocs((d) => ({ ...d, licenseNumber: txt }));
+                  if (errors.licenseNumber) setErrors((e) => ({ ...e, licenseNumber: null }));
+                }}
+                error={errors.licenseNumber}
+                iconName="card-outline"
+                autoCapitalize="characters"
+                maxLength={20}
+              />
+
+              {/* Carga de Licencia */}
+              <View style={styles.docUploadBox}>
+                <Text style={styles.fieldLabel}>Foto de Licencia de Conducción</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.uploadBtn,
+                    Boolean(errors.licensePhoto) && styles.uploadBtnError,
+                  ]}
+                  onPress={() => pickImage('license')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={docs.licensePhotoUri ? 'checkmark-circle' : 'camera-outline'}
+                    size={22}
+                    color={docs.licensePhotoUri ? colors.online : colors.textPrimary}
+                  />
+                  <Text style={styles.uploadBtnText}>
+                    {docs.licensePhotoUri ? 'Licencia Cargada (Toca para cambiar)' : 'Subir Foto de Licencia'}
+                  </Text>
+                </TouchableOpacity>
+                {docs.licensePhotoUri && (
+                  <Image source={{ uri: docs.licensePhotoUri }} style={styles.previewThumb} />
+                )}
+                {Boolean(errors.licensePhoto) && (
+                  <Text style={styles.errorInlineText}>{errors.licensePhoto}</Text>
+                )}
+              </View>
+
+              {/* Carga de SOAT */}
+              <View style={styles.docUploadBox}>
+                <Text style={styles.fieldLabel}>Póliza de SOAT Vigente</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.uploadBtn,
+                    Boolean(errors.soatPhoto) && styles.uploadBtnError,
+                  ]}
+                  onPress={() => pickImage('soat')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={docs.soatPhotoUri ? 'checkmark-circle' : 'shield-checkmark-outline'}
+                    size={22}
+                    color={docs.soatPhotoUri ? colors.online : colors.textPrimary}
+                  />
+                  <Text style={styles.uploadBtnText}>
+                    {docs.soatPhotoUri ? 'SOAT Cargado (Toca para cambiar)' : 'Subir Foto de SOAT'}
+                  </Text>
+                </TouchableOpacity>
+                {docs.soatPhotoUri && (
+                  <Image source={{ uri: docs.soatPhotoUri }} style={styles.previewThumb} />
+                )}
+                {Boolean(errors.soatPhoto) && (
+                  <Text style={styles.errorInlineText}>{errors.soatPhoto}</Text>
+                )}
+              </View>
+
+              {/* Carga de Técnico-Mecánica */}
+              <View style={styles.docUploadBox}>
+                <Text style={styles.fieldLabel}>Certificado de Revisión Técnico-Mecánica</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.uploadBtn,
+                    Boolean(errors.tecnoPhoto) && styles.uploadBtnError,
+                  ]}
+                  onPress={() => pickImage('tecno')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={docs.tecnoPhotoUri ? 'checkmark-circle' : 'construct-outline'}
+                    size={22}
+                    color={docs.tecnoPhotoUri ? colors.online : colors.textPrimary}
+                  />
+                  <Text style={styles.uploadBtnText}>
+                    {docs.tecnoPhotoUri ? 'Técnico-Mecánica Cargada (Toca para cambiar)' : 'Subir Foto Técnico-Mecánica'}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.helperTextDoc}>
+                  {parseInt(vehicle.year, 10) && new Date().getFullYear() - parseInt(vehicle.year, 10) >= 5
+                    ? 'Obligatoria para vehículos con 5 o más años de antigüedad'
+                    : 'Opcional si tu vehículo tiene menos de 5 años de antigüedad'}
                 </Text>
+                {docs.tecnoPhotoUri && (
+                  <Image source={{ uri: docs.tecnoPhotoUri }} style={styles.previewThumb} />
+                )}
+                {Boolean(errors.tecnoPhoto) && (
+                  <Text style={styles.errorInlineText}>{errors.tecnoPhoto}</Text>
+                )}
+              </View>
+
+              {/* Correo Mercado Pago */}
+              <InputWithValidation
+                label="Correo de Cobro (Mercado Pago)"
+                placeholder="pagos.conductor@mercadopago.com"
+                value={docs.mpEmail}
+                onChangeText={(txt) => {
+                  setDocs((d) => ({ ...d, mpEmail: txt }));
+                  if (errors.mpEmail) setErrors((e) => ({ ...e, mpEmail: null }));
+                }}
+                keyboardType="email-address"
+                error={errors.mpEmail}
+                helperText="Aquí se transferirán los ingresos de tus carreras finalizadas"
+                iconName="wallet-outline"
+              />
+
+              {/* Checkbox Términos y Comisión 20% */}
+              <TouchableOpacity
+                style={styles.termsBox}
+                onPress={() => {
+                  setDocs((d) => ({ ...d, termsAccepted: !d.termsAccepted }));
+                  if (errors.terms) setErrors((e) => ({ ...e, terms: null }));
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={docs.termsAccepted ? 'checkbox' : 'square-outline'}
+                  size={24}
+                  color={docs.termsAccepted ? colors.online : colors.textMuted}
+                />
+                <Text style={styles.termsText}>
+                  Acepto los términos y condiciones de servicio. Reconozco que la plataforma retiene una{' '}
+                  <Text style={{ fontWeight: '800', color: colors.black }}>comisión del 20%</Text> sobre el valor del trayecto
+                  y que el 100% de las propinas son directas para el conductor.
+                </Text>
+              </TouchableOpacity>
+              {Boolean(errors.terms) && (
+                <Text style={[styles.errorInlineText, { marginBottom: spacing.sm }]}>{errors.terms}</Text>
+              )}
+
+              {/* Botones de navegación y envío final */}
+              <View style={styles.buttonRow}>
+                <CustomButton
+                  title="Atrás"
+                  variant="secondary"
+                  onPress={() => setActiveTab(1)}
+                  disabled={isSubmitting}
+                  style={{ flex: 1 }}
+                />
+                <CustomButton
+                  title="Finalizar Registro"
+                  onPress={handleRegisterDriver}
+                  loading={isSubmitting}
+                  disabled={isSubmitting}
+                  style={{ flex: 2 }}
+                />
               </View>
             </View>
           )}
@@ -1427,6 +1669,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: spacing.sm,
     backgroundColor: '#EEEEEE',
+  },
+  termsBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+    padding: spacing.sm + 2,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  termsText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  helperTextDoc: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+    marginLeft: 2,
   },
   successCard: {
     backgroundColor: colors.surface,

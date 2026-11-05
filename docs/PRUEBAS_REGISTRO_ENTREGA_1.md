@@ -35,15 +35,15 @@ Se ejecutó la batería completa de pruebas funcionales y de experiencia de usua
 ## 📸 3. Evidencias de Cumplimiento de Reglas Académicas
 
 ### 3.1. Validaciones en Línea (Inline UX)
-- Todos los mensajes de advertencia y error se renderizan directamente debajo del componente [`InputWithValidation`](file:///c:/Users/Juan%20David/uberCloneConductor/src/components/InputWithValidation.js) utilizando el color corporativo reglamentario `#E11D48` y fondo de alerta `#FFF1F2`.
+- Todos los mensajes de advertencia y error se renderizan directamente debajo del componente `InputWithValidation` (`src/components/InputWithValidation.js`) utilizando el color corporativo reglamentario `#E11D48` y fondo de alerta `#FFF1F2`.
 - **Se certifica que no se utilizó `Alert.alert()` en ningún formulario de registro.**
 
 ### 3.2. Conexión Web a Firebase Firestore
-- La instancia se exporta como `export const db = getFirestore(app)` en [`src/config/firebase.js`](file:///c:/Users/Juan%20David/uberCloneConductor/src/config/firebase.js) utilizando la configuración Web (`</>`) oficial enseñada por la docente.
+- La instancia se exporta como `export const db = getFirestore(app)` en `src/config/firebase.js` utilizando la configuración Web (`</>`) oficial enseñada por la docente.
 - No se incluyó ningún archivo nativo `google-services.json`, asegurando portabilidad completa en Expo Go.
 
 ### 3.3. Estado Inicial del Conductor
-- Al persistir la información mediante [`dbService.saveDriver()`](file:///c:/Users/Juan%20David/uberCloneConductor/src/services/dbService.js), el documento en la colección `drivers` se almacena con:
+- Al persistir la información mediante `dbService.saveDriver()` (`src/services/dbService.js`), el documento en la colección `drivers` se almacena con:
   ```json
   {
     "status": "pending_approval",

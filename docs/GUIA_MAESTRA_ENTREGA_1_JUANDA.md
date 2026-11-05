@@ -3,9 +3,7 @@
 **Integrantes:** Juan Felipe (Fiera) y Juan David (Juanda)  
 **Docente:** Paula Andrea Muñoz Correa  
 **Tecnologías:** React Native con Expo (SDK 57) • Firebase Firestore Web (</>)  
-**Repositorio de Referencia (Código Probado):**
-- GitHub: https://github.com/JuandDavid/TrabajoPrueba.git
-- Ruta local en PC: `C:\Users\Juan David\TrabajoPrueba`
+**Repositorio Oficial del Proyecto:** https://github.com/JuandDavid/uberCloneConductor.git
 
 ---
 
@@ -40,17 +38,17 @@ Para reflejar un trabajo universitario colaborativo y natural:
 
 ---
 
-## 3. CÓMO IMPLEMENTAR CADA PASO (CONSULTA DEL CÓDIGO DE REFERENCIA)
+## 3. ARQUITECTURA MODULAR IMPLEMENTADA
 
-El código completo, modular y probado ya está construido en el repositorio de referencia:
-- **Componentes UI:** `src/components/` (`InputWithValidation.js`, `CustomButton.js`)
-- **Configuraciones:** `src/config/` (`firebase.js`, `pricing.js`)
-- **Servicios:** `src/services/dbService.js`
-- **Contextos:** `src/context/` (`AuthContext.js`, `TripContext.js`)
-- **Pantalla de Registro:** `src/screens/auth/RegisterScreen.js`
-- **Estilos y Tema:** `src/styles/theme.js`
+La arquitectura del módulo de registro se organizó de forma desacoplada y escalable:
+- **Componentes UI Reutilizables:** `src/components/` (`InputWithValidation.js`, `CustomButton.js`)
+- **Configuraciones Globales:** `src/config/` (`firebase.js`)
+- **Servicios de Base de Datos:** `src/services/dbService.js` (centraliza `setDoc`, `getDoc` y `updateDoc`)
+- **Gestión de Estado y Sesión:** `src/context/` (`AuthContext.js`)
+- **Vistas del Registro:** `src/screens/auth/RegisterScreen.js` (navegación por 3 pestañas y validaciones)
+- **Tema Visual y Colores:** `src/styles/theme.js`
 
-Al solicitar la creación de cada commit, la IA debe tomar la lógica probada del repositorio de referencia `TrabajoPrueba`, aplicarla paso a paso en el nuevo repositorio y validar que compile sin errores.
+Al desarrollar cada módulo, se respetan los criterios de aceptación acordados: validaciones en línea obligatorias sin `Alert`, persistencia en la colección `drivers` y verificación continua de compilación en Expo Go.
 
 ---
 

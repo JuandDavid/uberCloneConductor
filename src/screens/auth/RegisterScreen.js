@@ -562,9 +562,9 @@ export function RegisterScreen({ navigation }) {
           >
             <View style={styles.successCard}>
               <Ionicons name="checkmark-circle" size={68} color={colors.online} />
-              <Text style={styles.successTitle}>¡Registro Guardado en Firestore!</Text>
+              <Text style={styles.successTitle}>¡Registro Exitoso!</Text>
               <Text style={styles.successSubtitle}>
-                Los datos del conductor han sido guardados exitosamente en la colección 'drivers'.
+                Tus datos han sido registrados correctamente y tu cuenta se encuentra en revisión.
               </Text>
 
               {/* Badge de estado obligatorio (Docente Paula Andrea) */}

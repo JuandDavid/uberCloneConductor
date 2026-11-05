@@ -463,20 +463,26 @@ export function RegisterScreen({ navigation }) {
       errs.model = 'Máximo 30 caracteres permitidos';
     }
 
-    // 4. Año: 4 dígitos numéricos, menor o igual al año actual
+    // 4. Año: 4 dígitos numéricos, menor o igual al año actual y modelo 2005+
     const vehYear = parseInt(vehicle.year, 10);
     if (!vehYear || (vehicle.year || '').trim().length !== 4) {
       errs.year = 'El año debe contener 4 dígitos';
     } else if (vehYear > currentYear) {
       errs.year = `No puede ser mayor al año actual (${currentYear})`;
+    } else if (vehYear < 2005) {
+      errs.year = 'El vehículo debe ser modelo 2005 o superior para operar';
     }
 
-    // 5. Capacidad de Pasajeros: numérica >= 1, y si es XL mínimo 6
+    // 5. Capacidad de Pasajeros: coherencia por categoría
     const cap = parseInt(vehicle.capacity, 10);
     if (!cap || isNaN(cap) || cap < 1) {
       errs.capacity = 'Ingresa una capacidad de pasajeros válida (mínimo 1)';
+    } else if ((vehicle.category === 'economy' || vehicle.category === 'premium') && cap > 4) {
+      errs.capacity = 'Los vehículos estándar (Economy y Premium) admiten un máximo de 4 pasajeros';
     } else if (vehicle.category === 'xl' && cap < 6) {
       errs.capacity = 'La categoría XL exige una capacidad mínima de 6 pasajeros';
+    } else if (vehicle.category === 'xl' && cap > 8) {
+      errs.capacity = 'La categoría XL admite un máximo de 8 pasajeros';
     }
 
     setErrors((prev) => ({ ...prev, ...errs }));
@@ -1006,8 +1012,8 @@ export function RegisterScreen({ navigation }) {
                 error={errors.capacity}
                 helperText={
                   vehicle.category === 'xl'
-                    ? 'La categoría XL requiere al menos 6 pasajeros'
-                    : 'Cantidad de puestos disponibles para pasajeros'
+                    ? 'La categoría XL requiere entre 6 y 8 pasajeros'
+                    : 'Máximo 4 pasajeros en vehículos estándar (Economy y Premium)'
                 }
                 iconName="people-outline"
                 maxLength={2}

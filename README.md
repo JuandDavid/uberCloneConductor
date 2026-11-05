@@ -74,3 +74,4 @@ Para más información, consultar:
 - [Informe de Pruebas y Validación (Entrega 1)](./docs/PRUEBAS_REGISTRO_ENTREGA_1.md)
 - [Convenciones de Git y Criterios de Aceptación](./docs/CONVENCIONES_GIT_Y_CRITERIOS.md)
 - [Guía de Desarrollo y Plan de Entrega 1](./docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md)
+- [Bitácora de Acompañamiento Técnico y Uso Responsable de IA](./docs/BITACORA_USO_IA.md)

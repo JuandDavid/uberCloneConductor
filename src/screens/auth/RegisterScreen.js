@@ -133,6 +133,10 @@ export function RegisterScreen({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerView, setDatePickerView] = useState('calendar'); // 'calendar' | 'years' | 'months'
 
+  // --- ESTADO: Selector de Origen de Fotografía (Cámara vs Galería) ---
+  const [photoModalVisible, setPhotoModalVisible] = useState(false);
+  const [activePhotoTarget, setActivePhotoTarget] = useState(null); // 'personal' | 'vehicle' | 'license' | 'soat' | 'tecno'
+
   const currentYear = new Date().getFullYear();
   const maxBirthYear = currentYear - 18;
   const minBirthYear = 1950;
@@ -335,48 +339,108 @@ export function RegisterScreen({ navigation }) {
     );
   };
 
-  // --- SELECCIÓN DE IMÁGENES Y DOCUMENTOS (EXPO-IMAGE-PICKER) ---
-  const pickImage = async (type) => {
-    try {
-      const isDocument = ['license', 'soat', 'tecno'].includes(type);
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: isDocument ? [4, 3] : [1, 1],
-        quality: 0.7,
-      });
+  // --- TÍTULOS DESCRIPTIVOS PARA EL MODAL DE FOTOGRAFÍAS ---
+  const getPhotoTargetTitle = (target) => {
+    switch (target) {
+      case 'personal':
+        return 'Foto de Perfil del Conductor';
+      case 'vehicle':
+        return 'Foto del Vehículo (Placa visible)';
+      case 'license':
+        return 'Licencia de Conducción';
+      case 'soat':
+        return 'Póliza de SOAT Vigente';
+      case 'tecno':
+        return 'Revisión Técnico-Mecánica';
+      default:
+        return 'Adjuntar Documentación';
+    }
+  };
 
-      if (!result.canceled && result.assets[0]?.uri) {
+  // Abre el modal intuitivo para que el conductor decida si toma la foto con la cámara o la busca en su galería
+  const pickImage = (type) => {
+    setActivePhotoTarget(type);
+    setPhotoModalVisible(true);
+  };
+
+  // Captura la foto usando la cámara física del móvil o seleccionándola de la galería
+  const handleCaptureImage = async (source) => {
+    const target = activePhotoTarget;
+    setPhotoModalVisible(false);
+    if (!target) return;
+
+    try {
+      const isDocument = ['license', 'soat', 'tecno'].includes(target);
+      const aspect = isDocument ? [4, 3] : [1, 1];
+      let result;
+
+      if (source === 'camera') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          const errField =
+            target === 'personal'
+              ? 'personalPhoto'
+              : target === 'vehicle'
+              ? 'vehiclePhoto'
+              : `${target}Photo`;
+          setErrors((prev) => ({
+            ...prev,
+            [errField]: 'Se requiere permiso de acceso a la cámara para tomar la fotografía.',
+          }));
+          return;
+        }
+
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect,
+          quality: 0.8,
+        });
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          const errField =
+            target === 'personal'
+              ? 'personalPhoto'
+              : target === 'vehicle'
+              ? 'vehiclePhoto'
+              : `${target}Photo`;
+          setErrors((prev) => ({
+            ...prev,
+            [errField]: 'Se requiere permiso de acceso a la galería para seleccionar la fotografía.',
+          }));
+          return;
+        }
+
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect,
+          quality: 0.8,
+        });
+      }
+
+      if (!result.canceled && result.assets && result.assets[0]?.uri) {
         const uri = result.assets[0].uri;
-        if (type === 'personal') {
+        if (target === 'personal') {
           setPersonal((p) => ({ ...p, photoUri: uri }));
-          if (errors.personalPhoto) {
-            setErrors((e) => ({ ...e, personalPhoto: null }));
-          }
-        } else if (type === 'vehicle') {
+          if (errors.personalPhoto) setErrors((e) => ({ ...e, personalPhoto: null }));
+        } else if (target === 'vehicle') {
           setVehicle((v) => ({ ...v, photoUri: uri }));
-          if (errors.vehiclePhoto) {
-            setErrors((e) => ({ ...e, vehiclePhoto: null }));
-          }
-        } else if (type === 'license') {
+          if (errors.vehiclePhoto) setErrors((e) => ({ ...e, vehiclePhoto: null }));
+        } else if (target === 'license') {
           setDocs((d) => ({ ...d, licensePhotoUri: uri }));
-          if (errors.licensePhoto) {
-            setErrors((e) => ({ ...e, licensePhoto: null }));
-          }
-        } else if (type === 'soat') {
+          if (errors.licensePhoto) setErrors((e) => ({ ...e, licensePhoto: null }));
+        } else if (target === 'soat') {
           setDocs((d) => ({ ...d, soatPhotoUri: uri }));
-          if (errors.soatPhoto) {
-            setErrors((e) => ({ ...e, soatPhoto: null }));
-          }
-        } else if (type === 'tecno') {
+          if (errors.soatPhoto) setErrors((e) => ({ ...e, soatPhoto: null }));
+        } else if (target === 'tecno') {
           setDocs((d) => ({ ...d, tecnoPhotoUri: uri }));
-          if (errors.tecnoPhoto) {
-            setErrors((e) => ({ ...e, tecnoPhoto: null }));
-          }
+          if (errors.tecnoPhoto) setErrors((e) => ({ ...e, tecnoPhoto: null }));
         }
       }
     } catch (err) {
-      console.warn('Error al seleccionar imagen:', err);
+      console.warn('Error al capturar/seleccionar imagen:', err);
     }
   };
 
@@ -1457,6 +1521,89 @@ export function RegisterScreen({ navigation }) {
         </View>
       </View>
     </Modal>
+
+    {/* MODAL INTUITIVO PARA SELECCIONAR ORIGEN DE FOTO (CÁMARA VS GALERÍA) */}
+    <Modal
+      visible={photoModalVisible}
+      animationType="fade"
+      transparent={true}
+      onRequestClose={() => setPhotoModalVisible(false)}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setPhotoModalVisible(false)}
+      >
+        <View style={styles.photoSourceSheet}>
+          <View style={styles.sheetHandle} />
+
+          <View style={styles.photoSourceHeader}>
+            <View style={styles.photoSourceIconCircle}>
+              <Ionicons name="camera-reverse" size={22} color={colors.black} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.photoSourceTitle}>
+                {getPhotoTargetTitle(activePhotoTarget)}
+              </Text>
+              <Text style={styles.photoSourceSubtitle}>
+                ¿Cómo deseas adjuntar este archivo?
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setPhotoModalVisible(false)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Opción 1: Cámara de fotos */}
+          <TouchableOpacity
+            style={styles.photoSourceOption}
+            onPress={() => handleCaptureImage('camera')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.sourceIconBox, { backgroundColor: '#DCFCE7' }]}>
+              <Ionicons name="camera" size={24} color="#15803D" />
+            </View>
+            <View style={styles.sourceTextBox}>
+              <Text style={styles.sourceOptionTitle}>Tomar foto con la cámara</Text>
+              <Text style={styles.sourceOptionDesc}>
+                Abre la cámara de tu teléfono para capturar el documento en tiempo real
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          {/* Opción 2: Galería de fotos */}
+          <TouchableOpacity
+            style={styles.photoSourceOption}
+            onPress={() => handleCaptureImage('library')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.sourceIconBox, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="images" size={24} color="#2563EB" />
+            </View>
+            <View style={styles.sourceTextBox}>
+              <Text style={styles.sourceOptionTitle}>Elegir de la galería</Text>
+              <Text style={styles.sourceOptionDesc}>
+                Selecciona una foto previamente guardada en tu dispositivo
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          {/* Botón Cancelar */}
+          <TouchableOpacity
+            style={styles.cancelSourceBtn}
+            onPress={() => setPhotoModalVisible(false)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cancelSourceBtnText}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
   </SafeAreaView>
 );
 }
@@ -2063,6 +2210,96 @@ const styles = StyleSheet.create({
   modalActionRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  // --- ESTILOS: Selector de Origen de Imagen (Cámara vs Galería) ---
+  photoSourceSheet: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: spacing.lg,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+  sheetHandle: {
+    width: 44,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#CBD5E1',
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  photoSourceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: spacing.md,
+  },
+  photoSourceIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoSourceTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  photoSourceSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  photoSourceOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    marginBottom: spacing.sm,
+    gap: 12,
+  },
+  sourceIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sourceTextBox: {
+    flex: 1,
+  },
+  sourceOptionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sourceOptionDesc: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  cancelSourceBtn: {
+    marginTop: spacing.xs,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+  },
+  cancelSourceBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
 });
 

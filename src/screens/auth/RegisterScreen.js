@@ -571,7 +571,7 @@ export function RegisterScreen({ navigation }) {
               <View style={styles.statusBadge}>
                 <Ionicons name="time-outline" size={16} color="#B45309" />
                 <Text style={styles.statusBadgeText}>
-                  Estado: pending_approval
+                  Estado: Pendiente de Aprobación
                 </Text>
               </View>
 
@@ -618,8 +618,8 @@ export function RegisterScreen({ navigation }) {
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Colección Nube:</Text>
-                  <Text style={styles.detailValueTag}>drivers</Text>
+                  <Text style={styles.detailLabel}>Estado de Solicitud:</Text>
+                  <Text style={styles.detailValueTag}>En Revisión</Text>
                 </View>
               </View>
 

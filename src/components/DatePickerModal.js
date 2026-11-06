@@ -10,53 +10,34 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../styles/theme';
 
-const MONTHS_ES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
+import {
+  MONTHS_ES,
+  MONTHS_SHORT,
+  DAYS_OF_WEEK,
+  getDaysInMonth,
+  getFirstDayOfWeek,
+  parseDateString,
+  formatDateString,
+  formatReadableDate,
+  calculateAge,
+  calculateRemainingDays,
+  isLegalAge,
+  isSoatValid,
+} from '../utils/dateUtils';
 
-const MONTHS_SHORT = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-];
-
-const DAYS_OF_WEEK = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-export const getDaysInMonth = (year, month) => {
-  return new Date(year, month, 0).getDate();
-};
-
-export const getFirstDayOfWeek = (year, month) => {
-  const day = new Date(year, month - 1, 1).getDay();
-  return (day + 6) % 7;
-};
-
-export const parseDateString = (dateStr) => {
-  if (!dateStr || typeof dateStr !== 'string' || !dateStr.includes('-')) {
-    const today = new Date();
-    return {
-      year: today.getFullYear(),
-      month: today.getMonth() + 1,
-      day: today.getDate(),
-    };
-  }
-  const parts = dateStr.split('-');
-  return {
-    year: parseInt(parts[0], 10) || 2000,
-    month: parseInt(parts[1], 10) || 1,
-    day: parseInt(parts[2], 10) || 1,
-  };
-};
-
-export const formatDateString = (year, month, day) => {
-  const mm = String(month).padStart(2, '0');
-  const dd = String(day).padStart(2, '0');
-  return `${year}-${mm}-${dd}`;
-};
-
-export const formatReadableDate = (year, month, day) => {
-  const mName = MONTHS_ES[month - 1] || '';
-  return `${day} de ${mName} de ${year}`;
+export {
+  MONTHS_ES,
+  MONTHS_SHORT,
+  DAYS_OF_WEEK,
+  getDaysInMonth,
+  getFirstDayOfWeek,
+  parseDateString,
+  formatDateString,
+  formatReadableDate,
+  calculateAge,
+  calculateRemainingDays,
+  isLegalAge,
+  isSoatValid,
 };
 
 export function DatePickerModal({

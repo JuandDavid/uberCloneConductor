@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,10 +14,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { colors, spacing } from '../../styles/theme';
 import { InputWithValidation } from '../../components/InputWithValidation';
 import { CustomButton } from '../../components/CustomButton';
 import { useAuth } from '../../context/AuthContext';
+import { db } from '../../config/firebase';
 
 /**
  * Constantes y funciones de apoyo para el Selector Intuitivo de Fecha (DatePicker Modal)
@@ -86,7 +88,7 @@ const parseBirthDate = (dateStr) => {
  * 3. El avance se bloquea si los campos no cumplen las expresiones regulares.
  */
 export function RegisterScreen({ navigation }) {
-  const { registerDriver } = useAuth();
+  const { registerDriver, driver } = useAuth();
   const [activeTab, setActiveTab] = useState(0); // 0: Personal, 1: Vehículo, 2: Documentos
 
   // --- ESTADO: Pestaña 1 (Datos Personales) ---
@@ -128,6 +130,36 @@ export function RegisterScreen({ navigation }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredDriverData, setRegisteredDriverData] = useState(null);
+
+  // --- SINCRONIZACIÓN EN TIEMPO REAL CON FIRESTORE (onSnapshot) ---
+  // Escucha los cambios del conductor en la nube (ej: cuando el admin cambia status a 'approved')
+  useEffect(() => {
+    const driverId = registeredDriverData?.id || driver?.id;
+    if (!driverId) return;
+
+    try {
+      const docRef = doc(db, 'drivers', driverId);
+      const unsubscribe = onSnapshot(
+        docRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const cloudData = snapshot.data();
+            setRegisteredDriverData((prev) => ({
+              ...(prev || {}),
+              ...cloudData,
+            }));
+          }
+        },
+        (error) => {
+          console.warn('RegisterScreen [onSnapshot]:', error.message);
+        }
+      );
+
+      return () => unsubscribe();
+    } catch (err) {
+      console.warn('RegisterScreen [onSnapshot error]:', err);
+    }
+  }, [registeredDriverData?.id, driver?.id]);
 
   // --- ESTADO: Selector de Fecha Modal Intuitivo ---
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -713,17 +745,73 @@ export function RegisterScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.successCard}>
-              <Ionicons name="checkmark-circle" size={68} color={colors.online} />
-              <Text style={styles.successTitle}>¡Registro Exitoso!</Text>
+              <Ionicons
+                name={registeredDriverData?.status === 'approved' ? 'checkmark-done-circle' : 'checkmark-circle'}
+                size={68}
+                color={colors.online}
+              />
+              <Text style={styles.successTitle}>
+                {registeredDriverData?.status === 'approved' ? '¡Conductor Aprobado!' : '¡Registro Exitoso!'}
+              </Text>
               <Text style={styles.successSubtitle}>
-                Tus datos han sido registrados correctamente y tu cuenta se encuentra en revisión.
+                {registeredDriverData?.status === 'approved'
+                  ? 'El administrador ha validado tu información y tu cuenta se encuentra oficialmente aprobada.'
+                  : 'Tus datos han sido registrados correctamente y tu cuenta se encuentra en revisión.'}
               </Text>
 
-              {/* Badge de estado obligatorio (Docente Paula Andrea) */}
-              <View style={styles.statusBadge}>
-                <Ionicons name="time-outline" size={16} color="#B45309" />
-                <Text style={styles.statusBadgeText}>
-                  Estado: Pendiente de Aprobación
+              {/* Badge de estado en tiempo real (Docente Paula Andrea) */}
+              <View
+                style={[
+                  styles.statusBadge,
+                  registeredDriverData?.status === 'approved' && styles.statusBadgeApproved,
+                ]}
+              >
+                <Ionicons
+                  name={registeredDriverData?.status === 'approved' ? 'shield-checkmark' : 'time-outline'}
+                  size={16}
+                  color={registeredDriverData?.status === 'approved' ? '#15803D' : '#B45309'}
+                />
+                <Text
+                  style={[
+                    styles.statusBadgeText,
+                    registeredDriverData?.status === 'approved' && styles.statusBadgeTextApproved,
+                  ]}
+                >
+                  {registeredDriverData?.status === 'approved'
+                    ? 'Estado: Aprobado (Activo en Plataforma)'
+                    : 'Estado: Pendiente de Aprobación'}
+                </Text>
+              </View>
+
+              {/* Indicador de sincronización en vivo con Firebase */}
+              <View
+                style={[
+                  styles.liveSyncBadge,
+                  registeredDriverData?.status === 'approved'
+                    ? styles.liveSyncBadgeApproved
+                    : styles.liveSyncBadgePending,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.liveSyncDot,
+                    {
+                      backgroundColor:
+                        registeredDriverData?.status === 'approved' ? '#16A34A' : '#F59E0B',
+                    },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.liveSyncText,
+                    registeredDriverData?.status === 'approved'
+                      ? styles.liveSyncTextApproved
+                      : styles.liveSyncTextPending,
+                  ]}
+                >
+                  {registeredDriverData?.status === 'approved'
+                    ? 'Sincronizado con Firebase: Aprobado en la Nube'
+                    : 'Sincronizado con Firebase: Esperando aprobación'}
                 </Text>
               </View>
 
@@ -777,9 +865,28 @@ export function RegisterScreen({ navigation }) {
                 </View>
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Estado de Solicitud:</Text>
-                  <Text style={styles.detailValueTag}>En Revisión</Text>
+                  <Text
+                    style={[
+                      styles.detailValueTag,
+                      registeredDriverData?.status === 'approved' && styles.detailValueTagApproved,
+                    ]}
+                  >
+                    {registeredDriverData?.status === 'approved' ? 'Aprobada' : 'En Revisión'}
+                  </Text>
                 </View>
               </View>
+
+              {registeredDriverData?.status === 'approved' && (
+                <View style={styles.approvedCelebrationBox}>
+                  <Ionicons name="shield-checkmark" size={26} color="#15803D" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.approvedCelebrationTitle}>Documentación Validada</Text>
+                    <Text style={styles.approvedCelebrationText}>
+                      Tu licencia, SOAT y revisión vehicular fueron aprobados desde la consola de Firebase.
+                    </Text>
+                  </View>
+                </View>
+              )}
 
               <CustomButton
                 title="Modificar Datos / Volver al Formulario"
@@ -1875,10 +1982,73 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FDE68A',
   },
+  statusBadgeApproved: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+  },
   statusBadgeText: {
     fontSize: 13,
     fontWeight: '700',
     color: '#B45309',
+  },
+  statusBadgeTextApproved: {
+    color: '#15803D',
+  },
+  liveSyncBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 14,
+    marginTop: spacing.sm,
+    borderWidth: 1,
+  },
+  liveSyncBadgePending: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FEF3C7',
+  },
+  liveSyncBadgeApproved: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#DCFCE7',
+  },
+  liveSyncDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  liveSyncText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  liveSyncTextPending: {
+    color: '#D97706',
+  },
+  liveSyncTextApproved: {
+    color: '#16A34A',
+  },
+  approvedCelebrationBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1.5,
+    borderColor: '#86EFAC',
+    borderRadius: 12,
+    padding: spacing.md,
+    marginTop: spacing.md,
+    width: '100%',
+  },
+  approvedCelebrationTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#166534',
+  },
+  approvedCelebrationText: {
+    fontSize: 12,
+    color: '#15803D',
+    marginTop: 2,
+    lineHeight: 16,
   },
   detailBox: {
     width: '100%',
@@ -1931,6 +2101,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     fontWeight: '700',
     overflow: 'hidden',
+  },
+  detailValueTagApproved: {
+    color: '#15803D',
+    backgroundColor: '#DCFCE7',
   },
   // --- ESTILOS: Selector de Fecha Modal y Campo de Fecha ---
   dateFieldContainer: {

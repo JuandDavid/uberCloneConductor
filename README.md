@@ -35,6 +35,15 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 - **Capacidad de Pasajeros:** Número de pasajeros admitidos según la categoría.
 - **Foto del Vehículo:** Carga de fotografía del vehículo registrado.
 
+### 📄 Pestaña 3: Documentación y Validación Legal
+- **Licencia de Conducción:** Número de licencia validado y captura de fotografía legible.
+- **Póliza de SOAT Vigente:** Validación estricta de vigencia legal (requiere como mínimo 1 día de vigencia restante antes del vencimiento) y carga de póliza.
+- **Revisión Técnico-Mecánica:** Validación inteligente obligatoria para vehículos con 5 o más años de antigüedad.
+- **Captura Dual de Documentos:** Menú contextual para capturar en vivo mediante la cámara física o adjuntar desde la galería.
+- **Cuenta de Liquidación:** Correo registrado para recepción de ingresos por carreras completadas.
+- **Términos del Servicio:** Aceptación explícita de condiciones con retención del 20% de comisión de plataforma.
+- **Sincronización en Tiempo Real (onSnapshot):** La pantalla de confirmación se actualiza automáticamente en vivo al cambiar el estado del conductor.
+
 ---
 
 ## ⚖️ 3. Criterios de Aceptación y Reglas Académicas Obligatorias

@@ -18,33 +18,13 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { colors, spacing } from '../../styles/theme';
 import { InputWithValidation } from '../../components/InputWithValidation';
 import { CustomButton } from '../../components/CustomButton';
+import {
+  DatePickerModal,
+  formatReadableDate,
+  parseDateString,
+} from '../../components/DatePickerModal';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../config/firebase';
-
-/**
- * Constantes y funciones de apoyo para el Selector Intuitivo de Fecha (DatePicker Modal)
- */
-const MONTHS_ES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
-
-const MONTHS_SHORT = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-];
-
-const DAYS_OF_WEEK = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-const getDaysInMonth = (year, month) => {
-  return new Date(year, month, 0).getDate();
-};
-
-const getFirstDayOfWeek = (year, month) => {
-  // Domingo = 0, Lunes = 1 -> Convertido a Lunes = 0, ..., Domingo = 6
-  const day = new Date(year, month - 1, 1).getDay();
-  return (day + 6) % 7;
-};
 
 const calculateAge = (year, month, day) => {
   const today = new Date();
@@ -54,28 +34,6 @@ const calculateAge = (year, month, day) => {
     age--;
   }
   return age;
-};
-
-const formatDateString = (year, month, day) => {
-  const mm = String(month).padStart(2, '0');
-  const dd = String(day).padStart(2, '0');
-  return `${year}-${mm}-${dd}`;
-};
-
-const formatReadableDate = (year, month, day) => {
-  const mName = MONTHS_ES[month - 1] || '';
-  return `${day} de ${mName} de ${year}`;
-};
-
-const parseBirthDate = (dateStr) => {
-  if (!dateStr || typeof dateStr !== 'string' || !dateStr.includes('-')) {
-    return { year: 2000, month: 1, day: 1 };
-  }
-  const parts = dateStr.split('-');
-  const y = parseInt(parts[0], 10) || 2000;
-  const m = parseInt(parts[1], 10) || 1;
-  const d = parseInt(parts[2], 10) || 1;
-  return { year: y, month: m, day: d };
 };
 
 /**
@@ -162,214 +120,19 @@ export function RegisterScreen({ navigation }) {
     }
   }, [registeredDriverData?.id, driver?.id]);
 
-  // --- ESTADO: Selector de Fecha Modal Intuitivo ---
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [datePickerView, setDatePickerView] = useState('calendar'); // 'calendar' | 'years' | 'months'
+  // --- ESTADO: Modales de Selección de Fecha (Nacimiento y SOAT) ---
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [showSoatDatePicker, setShowSoatDatePicker] = useState(false);
 
   // --- ESTADO: Selector de Origen de Fotografía (Cámara vs Galería) ---
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
-  const [activePhotoTarget, setActivePhotoTarget] = useState(null); // 'personal' | 'vehicle' | 'license' | 'soat' | 'tecno'
+  const [activePhotoTarget, setActivePhotoTarget] = useState(null); // personal | vehicle | license | soat | tecno
 
-  const currentYear = new Date().getFullYear();
-  const maxBirthYear = currentYear - 18;
-  const minBirthYear = 1950;
-
-  const initialParsedDate = useMemo(
-    () => parseBirthDate(personal.birthDate),
-    [personal.birthDate]
-  );
-
-  const [pickerYear, setPickerYear] = useState(initialParsedDate.year);
-  const [pickerMonth, setPickerMonth] = useState(initialParsedDate.month);
-  const [pickerDay, setPickerDay] = useState(initialParsedDate.day);
-
-  // Lista de años disponibles (desde maxBirthYear hacia minBirthYear)
-  const availableYears = useMemo(() => {
-    const list = [];
-    for (let y = maxBirthYear; y >= minBirthYear; y--) {
-      list.push(y);
-    }
-    return list;
-  }, [maxBirthYear, minBirthYear]);
-
-  // Edad calculada en tiempo real según la fecha seleccionada en el modal
-  const pickerAge = useMemo(
-    () => calculateAge(pickerYear, pickerMonth, pickerDay),
-    [pickerYear, pickerMonth, pickerDay]
-  );
-
-  // Abrir selector sincronizando con la fecha actual del formulario y cerrando teclado
-  const openDatePicker = () => {
-    Keyboard.dismiss();
-    const parsed = parseBirthDate(personal.birthDate);
-    setPickerYear(parsed.year);
-    setPickerMonth(parsed.month);
-    setPickerDay(parsed.day);
-    setDatePickerView('calendar');
-    setShowDatePicker(true);
-  };
-
-  // Navegación de mes anterior / siguiente
-  const handlePrevMonth = () => {
-    if (pickerMonth === 1) {
-      if (pickerYear > minBirthYear) {
-        setPickerYear((y) => y - 1);
-        setPickerMonth(12);
-      }
-    } else {
-      setPickerMonth((m) => m - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (pickerMonth === 12) {
-      if (pickerYear < maxBirthYear) {
-        setPickerYear((y) => y + 1);
-        setPickerMonth(1);
-      }
-    } else {
-      setPickerMonth((m) => m + 1);
-    }
-  };
-
-  // Confirmar la selección de fecha
-  const handleConfirmDate = () => {
-    const maxDays = getDaysInMonth(pickerYear, pickerMonth);
-    const validDay = Math.min(pickerDay, maxDays);
-    const formatted = formatDateString(pickerYear, pickerMonth, validDay);
-    const age = calculateAge(pickerYear, pickerMonth, validDay);
-
-    if (age < 18) {
-      setErrors((prev) => ({
-        ...prev,
-        birthDate: 'El conductor debe ser mayor de 18 años',
-      }));
-    } else {
-      setPersonal((prev) => ({ ...prev, birthDate: formatted }));
-      if (errors.birthDate) {
-        setErrors((prev) => ({ ...prev, birthDate: null }));
-      }
-    }
-    setShowDatePicker(false);
-  };
-
-  // Renderizadores de vistas del Modal de Fecha
-  const renderCalendarDays = () => {
-    const daysInMonth = getDaysInMonth(pickerYear, pickerMonth);
-    const firstDayIndex = getFirstDayOfWeek(pickerYear, pickerMonth);
-    const cells = [];
-
-    for (let i = 0; i < firstDayIndex; i++) {
-      cells.push(<View key={`empty-${i}`} style={styles.calendarDayCellEmpty} />);
-    }
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const isSelected = d === pickerDay;
-      cells.push(
-        <TouchableOpacity
-          key={`day-${d}`}
-          style={[
-            styles.calendarDayCell,
-            isSelected && styles.calendarDayCellSelected,
-          ]}
-          onPress={() => setPickerDay(d)}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.calendarDayText,
-              isSelected && styles.calendarDayTextSelected,
-            ]}
-          >
-            {d}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
-
-    return (
-      <View style={styles.calendarGrid}>
-        <View style={styles.calendarWeekRow}>
-          {DAYS_OF_WEEK.map((dName) => (
-            <Text key={dName} style={styles.calendarWeekDayText}>
-              {dName}
-            </Text>
-          ))}
-        </View>
-        <View style={styles.calendarDaysWrap}>{cells}</View>
-      </View>
-    );
-  };
-
-  const renderMonthsGrid = () => {
-    return (
-      <View style={styles.monthsGrid}>
-        {MONTHS_SHORT.map((mName, idx) => {
-          const monthNum = idx + 1;
-          const isSelected = monthNum === pickerMonth;
-          return (
-            <TouchableOpacity
-              key={mName}
-              style={[
-                styles.monthGridCell,
-                isSelected && styles.monthGridCellSelected,
-              ]}
-              onPress={() => {
-                setPickerMonth(monthNum);
-                setDatePickerView('calendar');
-              }}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.monthGridCellText,
-                  isSelected && styles.monthGridCellTextSelected,
-                ]}
-              >
-                {MONTHS_ES[idx]}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
-  const renderYearsGrid = () => {
-    return (
-      <ScrollView
-        style={styles.yearsScrollView}
-        contentContainerStyle={styles.yearsGridContent}
-        showsVerticalScrollIndicator={true}
-      >
-        {availableYears.map((yr) => {
-          const isSelected = yr === pickerYear;
-          return (
-            <TouchableOpacity
-              key={yr}
-              style={[
-                styles.yearGridCell,
-                isSelected && styles.yearGridCellSelected,
-              ]}
-              onPress={() => {
-                setPickerYear(yr);
-                setDatePickerView('calendar');
-              }}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.yearGridCellText,
-                  isSelected && styles.yearGridCellTextSelected,
-                ]}
-              >
-                {yr}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    );
+  // Formato legible de fecha para los campos de formulario
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return "";
+    const p = parseDateString(dateStr);
+    return formatReadableDate(p.year, p.month, p.day);
   };
 
   // --- TÍTULOS DESCRIPTIVOS PARA EL MODAL DE FOTOGRAFÍAS ---
@@ -390,7 +153,7 @@ export function RegisterScreen({ navigation }) {
     }
   };
 
-  // Abre el modal intuitivo para que el conductor decida si toma la foto con la cámara o la busca en su galería
+  // Abre el modal para que el conductor decida si toma la foto con la cámara o la busca en su galería
   const pickImage = (type) => {
     setActivePhotoTarget(type);
     setPhotoModalVisible(true);
@@ -1098,7 +861,7 @@ export function RegisterScreen({ navigation }) {
                 maxLength={10}
               />
 
-              {/* Fecha de Nacimiento (Selector Intuitivo con Modal) */}
+              {/* Fecha de Nacimiento (Selector de Fecha Modal) */}
               <View style={styles.dateFieldContainer}>
                 <Text style={styles.fieldLabel}>Fecha de Nacimiento</Text>
                 <TouchableOpacity
@@ -1106,7 +869,7 @@ export function RegisterScreen({ navigation }) {
                     styles.datePickerInput,
                     Boolean(errors.birthDate) && styles.datePickerInputError,
                   ]}
-                  onPress={openDatePicker}
+                  onPress={() => setShowBirthDatePicker(true)}
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -1118,11 +881,7 @@ export function RegisterScreen({ navigation }) {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.datePickerValueText}>
                       {personal.birthDate
-                        ? `${formatReadableDate(
-                            parseBirthDate(personal.birthDate).year,
-                            parseBirthDate(personal.birthDate).month,
-                            parseBirthDate(personal.birthDate).day
-                          )} (${personal.birthDate})`
+                        ? `${formatDisplayDate(personal.birthDate)} (${personal.birthDate})`
                         : 'Toca para elegir fecha...'}
                     </Text>
                   </View>
@@ -1392,20 +1151,50 @@ export function RegisterScreen({ navigation }) {
                 )}
               </View>
 
-              {/* Fecha de Vencimiento del SOAT (Vigencia Legal) */}
-              <InputWithValidation
-                label="Fecha de Vencimiento del SOAT (Mínimo 1 día de vigencia)"
-                placeholder="AAAA-MM-DD (Ej: 2027-11-20)"
-                value={docs.soatExpiry}
-                onChangeText={(txt) => {
-                  setDocs((d) => ({ ...d, soatExpiry: txt }));
-                  if (errors.soatExpiry) setErrors((e) => ({ ...e, soatExpiry: null }));
-                }}
-                error={errors.soatExpiry}
-                helperText="La ley de transporte exige que el SOAT tenga al menos 1 día de vigencia restante"
-                iconName="calendar-outline"
-                maxLength={10}
-              />
+              {/* Fecha de Vencimiento del SOAT (Selector de Fecha Modal) */}
+              <View style={styles.dateFieldContainer}>
+                <Text style={styles.fieldLabel}>Fecha de Vencimiento del SOAT</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.datePickerInput,
+                    Boolean(errors.soatExpiry) && styles.datePickerInputError,
+                  ]}
+                  onPress={() => setShowSoatDatePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={20}
+                    color={errors.soatExpiry ? colors.errorText : colors.textSecondary}
+                    style={{ marginRight: 10 }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.datePickerValueText}>
+                      {docs.soatExpiry
+                        ? `${formatDisplayDate(docs.soatExpiry)} (${docs.soatExpiry})`
+                        : 'Toca para elegir fecha de vencimiento...'}
+                    </Text>
+                  </View>
+                  <View style={styles.changeDateBadge}>
+                    <Ionicons
+                      name="calendar"
+                      size={13}
+                      color={colors.textPrimary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text style={styles.changeDateBadgeText}>Elegir</Text>
+                    <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
+                  </View>
+                </TouchableOpacity>
+
+                {Boolean(errors.soatExpiry) ? (
+                  <Text style={styles.errorInlineText}>{errors.soatExpiry}</Text>
+                ) : (
+                  <Text style={styles.dateHelperText}>
+                    Requisito legal: la póliza debe tener al menos 1 día de vigencia restante
+                  </Text>
+                )}
+              </View>
 
               {/* Carga de SOAT */}
               <View style={styles.docUploadBox}>
@@ -1532,160 +1321,37 @@ export function RegisterScreen({ navigation }) {
       </View>
     </KeyboardAvoidingView>
 
-    {/* MODAL INTUITIVO DE FECHA DE NACIMIENTO */}
-    <Modal
-      visible={showDatePicker}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={() => setShowDatePicker(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
-          {/* Cabecera del Modal */}
-          <View style={styles.modalHeader}>
-            <View style={styles.modalHeaderTitleRow}>
-              <Ionicons name="calendar" size={20} color={colors.black} />
-              <Text style={styles.modalTitle}>Fecha de Nacimiento</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(false)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+    {/* Selector de Fecha de Nacimiento */}
+    <DatePickerModal
+      visible={showBirthDatePicker}
+      onClose={() => setShowBirthDatePicker(false)}
+      onSelect={(selectedDate) => {
+        setPersonal((prev) => ({ ...prev, birthDate: selectedDate }));
+        if (errors.birthDate) {
+          setErrors((prev) => ({ ...prev, birthDate: null }));
+        }
+      }}
+      initialDate={personal.birthDate || '2000-01-01'}
+      title="Fecha de Nacimiento"
+      mode="birthDate"
+    />
 
-          {/* Banner de Resumen y Validación de Mayoría de Edad */}
-          <View style={styles.modalSummaryBox}>
-            <Text style={styles.modalDatePreview}>
-              {pickerDay} de {MONTHS_ES[pickerMonth - 1]} de {pickerYear}
-            </Text>
-            <View
-              style={[
-                styles.modalAgeBadge,
-                pickerAge >= 18
-                  ? styles.modalAgeBadgeValid
-                  : styles.modalAgeBadgeInvalid,
-              ]}
-            >
-              <Ionicons
-                name={pickerAge >= 18 ? 'checkmark-circle' : 'alert-circle'}
-                size={15}
-                color={pickerAge >= 18 ? '#15803D' : '#BE123C'}
-              />
-              <Text
-                style={[
-                  styles.modalAgeBadgeText,
-                  pickerAge >= 18
-                    ? styles.modalAgeBadgeTextValid
-                    : styles.modalAgeBadgeTextInvalid,
-                ]}
-              >
-                {pickerAge >= 18
-                  ? `${pickerAge} años • Mayor de edad (Válido)`
-                  : `${pickerAge} años • Menor de edad (Mínimo 18)`}
-              </Text>
-            </View>
-          </View>
+    {/* Selector de Fecha de Vencimiento de SOAT */}
+    <DatePickerModal
+      visible={showSoatDatePicker}
+      onClose={() => setShowSoatDatePicker(false)}
+      onSelect={(selectedDate) => {
+        setDocs((prev) => ({ ...prev, soatExpiry: selectedDate }));
+        if (errors.soatExpiry) {
+          setErrors((prev) => ({ ...prev, soatExpiry: null }));
+        }
+      }}
+      initialDate={docs.soatExpiry || '2027-11-20'}
+      title="Vencimiento de Póliza SOAT"
+      mode="futureDate"
+    />
 
-          {/* Selector de Modos / Barra de Navegación */}
-          <View style={styles.pickerNavBar}>
-            <TouchableOpacity
-              style={styles.pickerNavArrow}
-              onPress={handlePrevMonth}
-              disabled={datePickerView !== 'calendar'}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={20}
-                color={datePickerView === 'calendar' ? colors.black : colors.border}
-              />
-            </TouchableOpacity>
-
-            <View style={styles.pickerNavPillsRow}>
-              {/* Botón selector de Mes */}
-              <TouchableOpacity
-                style={[
-                  styles.pickerNavPill,
-                  datePickerView === 'months' && styles.pickerNavPillActive,
-                ]}
-                onPress={() =>
-                  setDatePickerView(datePickerView === 'months' ? 'calendar' : 'months')
-                }
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.pickerNavPillText,
-                    datePickerView === 'months' && styles.pickerNavPillTextActive,
-                  ]}
-                >
-                  {MONTHS_ES[pickerMonth - 1]} ▾
-                </Text>
-              </TouchableOpacity>
-
-              {/* Botón selector de Año */}
-              <TouchableOpacity
-                style={[
-                  styles.pickerNavPill,
-                  datePickerView === 'years' && styles.pickerNavPillActive,
-                ]}
-                onPress={() =>
-                  setDatePickerView(datePickerView === 'years' ? 'calendar' : 'years')
-                }
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.pickerNavPillText,
-                    datePickerView === 'years' && styles.pickerNavPillTextActive,
-                  ]}
-                >
-                  {pickerYear} ▾
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.pickerNavArrow}
-              onPress={handleNextMonth}
-              disabled={datePickerView !== 'calendar'}
-            >
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={datePickerView === 'calendar' ? colors.black : colors.border}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Vista condicional del selector */}
-          <View style={styles.pickerBodyContainer}>
-            {datePickerView === 'calendar' && renderCalendarDays()}
-            {datePickerView === 'months' && renderMonthsGrid()}
-            {datePickerView === 'years' && renderYearsGrid()}
-          </View>
-
-          {/* Botones de Acción */}
-          <View style={styles.modalActionRow}>
-            <CustomButton
-              title="Cancelar"
-              variant="secondary"
-              onPress={() => setShowDatePicker(false)}
-              style={{ flex: 1 }}
-            />
-            <CustomButton
-              title="Confirmar Fecha"
-              onPress={handleConfirmDate}
-              disabled={pickerAge < 18}
-              style={{ flex: 2 }}
-            />
-          </View>
-        </View>
-      </View>
-    </Modal>
-
-    {/* MODAL INTUITIVO PARA SELECCIONAR ORIGEN DE FOTO (CÁMARA VS GALERÍA) */}
+    {/* MODAL PARA SELECCIONAR ORIGEN DE FOTO (CÁMARA VS GALERÍA) */}
     <Modal
       visible={photoModalVisible}
       animationType="fade"
@@ -2246,196 +1912,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: colors.textPrimary,
-  },
-  modalSummaryBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
-    padding: spacing.md,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  modalDatePreview: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  modalAgeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  modalAgeBadgeValid: {
-    backgroundColor: '#DCFCE7',
-  },
-  modalAgeBadgeInvalid: {
-    backgroundColor: '#FFE4E6',
-  },
-  modalAgeBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  modalAgeBadgeTextValid: {
-    color: '#15803D',
-  },
-  modalAgeBadgeTextInvalid: {
-    color: '#BE123C',
-  },
-  pickerNavBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-    paddingHorizontal: 4,
-  },
-  pickerNavArrow: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-  },
-  pickerNavPillsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  pickerNavPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  pickerNavPillActive: {
-    backgroundColor: colors.black,
-    borderColor: colors.black,
-  },
-  pickerNavPillText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  pickerNavPillTextActive: {
-    color: colors.white,
-  },
-  pickerBodyContainer: {
-    minHeight: 235,
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  calendarGrid: {
-    width: '100%',
-  },
-  calendarWeekRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingBottom: 6,
-  },
-  calendarWeekDayText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textMuted,
-    width: 36,
-    textAlign: 'center',
-  },
-  calendarDaysWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  calendarDayCellEmpty: {
-    width: `${100 / 7}%`,
-    height: 36,
-  },
-  calendarDayCell: {
-    width: `${100 / 7}%`,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 18,
-    marginVertical: 2,
-  },
-  calendarDayCellSelected: {
-    backgroundColor: colors.black,
-  },
-  calendarDayText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  calendarDayTextSelected: {
-    color: colors.white,
-    fontWeight: '800',
-  },
-  monthsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-    paddingVertical: spacing.xs,
-  },
-  monthGridCell: {
-    width: '30%',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  monthGridCellSelected: {
-    backgroundColor: colors.black,
-    borderColor: colors.black,
-  },
-  monthGridCellText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  monthGridCellTextSelected: {
-    color: colors.white,
-    fontWeight: '800',
-  },
-  yearsScrollView: {
-    maxHeight: 220,
-  },
-  yearsGridContent: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-    paddingVertical: spacing.xs,
-  },
-  yearGridCell: {
-    width: '22%',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  yearGridCellSelected: {
-    backgroundColor: colors.black,
-    borderColor: colors.black,
-  },
-  yearGridCellText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  yearGridCellTextSelected: {
-    color: colors.white,
-    fontWeight: '800',
   },
   modalActionRow: {
     flexDirection: 'row',

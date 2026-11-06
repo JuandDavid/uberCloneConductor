@@ -306,8 +306,8 @@ export function DatePickerModal({
                   ]}
                 >
                   {calculatedAge >= 18
-                    ? `${calculatedAge} años (Mayor de edad)`
-                    : `${calculatedAge} años (Mínimo 18 años requeridos)`}
+                    ? `${calculatedAge} años`
+                    : `${calculatedAge} años (debes ser mayor de 18)`}
                 </Text>
               </View>
             )}
@@ -331,8 +331,8 @@ export function DatePickerModal({
                   ]}
                 >
                   {daysRemaining >= 1
-                    ? `Póliza vigente (${daysRemaining} días restantes)`
-                    : 'Póliza vencida o vence hoy (No válida)'}
+                    ? `Vigente (${daysRemaining} días restantes)`
+                    : 'Póliza vencida o sin vigencia'}
                 </Text>
               </View>
             )}
@@ -406,7 +406,7 @@ export function DatePickerModal({
               activeOpacity={0.8}
             >
               <Text style={[styles.confirmBtnText, !isValidSelection && styles.confirmBtnTextDisabled]}>
-                Confirmar Fecha
+                Aceptar
               </Text>
             </TouchableOpacity>
           </View>

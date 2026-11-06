@@ -901,7 +901,7 @@ export function RegisterScreen({ navigation }) {
                   <Text style={styles.errorInlineText}>{errors.birthDate}</Text>
                 ) : (
                   <Text style={styles.dateHelperText}>
-                    Requisito: el conductor debe tener al menos 18 años
+                    Debes tener al menos 18 años para registrarte
                   </Text>
                 )}
               </View>
@@ -1191,7 +1191,7 @@ export function RegisterScreen({ navigation }) {
                   <Text style={styles.errorInlineText}>{errors.soatExpiry}</Text>
                 ) : (
                   <Text style={styles.dateHelperText}>
-                    Requisito legal: la póliza debe tener al menos 1 día de vigencia restante
+                    El SOAT debe tener al menos 1 día de vigencia restante
                   </Text>
                 )}
               </View>
@@ -1347,7 +1347,7 @@ export function RegisterScreen({ navigation }) {
         }
       }}
       initialDate={docs.soatExpiry || '2027-11-20'}
-      title="Vencimiento de Póliza SOAT"
+      title="Vencimiento del SOAT"
       mode="futureDate"
     />
 

@@ -119,6 +119,7 @@ export function RegisterScreen({ navigation }) {
   const [docs, setDocs] = useState({
     licenseNumber: '',
     licensePhotoUri: null,
+    soatExpiry: '2027-11-20',
     soatPhotoUri: null,
     tecnoPhotoUri: null,
     mpEmail: '',
@@ -645,17 +646,50 @@ export function RegisterScreen({ navigation }) {
       errs.licensePhoto = 'Debes adjuntar la foto legible de tu licencia de conducción';
     }
 
-    // 3. Foto de SOAT
-    if (!docs.soatPhotoUri) {
-      errs.soatPhoto = 'Debes adjuntar la foto del SOAT vigente';
+    // 3. Vigencia Legal del SOAT (Debe contar con al menos 1 día de vigencia)
+    if (!docs.soatExpiry || !docs.soatExpiry.trim()) {
+      errs.soatExpiry = 'La fecha de vencimiento del SOAT es obligatoria';
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(docs.soatExpiry.trim())) {
+      errs.soatExpiry = 'Formato inválido. Usa el formato AAAA-MM-DD (ej: 2027-11-20)';
+    } else {
+      const parts = docs.soatExpiry.trim().split('-');
+      const expY = parseInt(parts[0], 10);
+      const expM = parseInt(parts[1], 10);
+      const expD = parseInt(parts[2], 10);
+
+      const expiryDate = new Date(expY, expM - 1, expD);
+      const isCalendarValid =
+        expiryDate.getFullYear() === expY &&
+        expiryDate.getMonth() === expM - 1 &&
+        expiryDate.getDate() === expD;
+
+      if (!isCalendarValid) {
+        errs.soatExpiry = 'Ingresa una fecha de calendario válida';
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        expiryDate.setHours(0, 0, 0, 0);
+
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 1) {
+          errs.soatExpiry = 'El SOAT está vencido o vence hoy. La ley de transporte exige mínimo 1 día de vigencia legal para operar.';
+        }
+      }
     }
 
-    // 4. Técnico-mecánica (obligatoria si el vehículo tiene 5 o más años de antigüedad)
+    // 4. Foto de la Póliza del SOAT
+    if (!docs.soatPhotoUri) {
+      errs.soatPhoto = 'Debes adjuntar la foto legible de la póliza de SOAT';
+    }
+
+    // 5. Técnico-mecánica (obligatoria si el vehículo tiene 5 o más años de antigüedad)
     if (vehicleAge >= 5 && !docs.tecnoPhotoUri) {
       errs.tecnoPhoto = 'Obligatoria para vehículos con 5 o más años de antigüedad';
     }
 
-    // 5. Correo para Liquidaciones (Mercado Pago)
+    // 6. Correo para Liquidaciones (Mercado Pago)
     if (docs.mpEmail && docs.mpEmail.trim()) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(docs.mpEmail.trim())) {
         errs.mpEmail = 'Formato de correo de pagos inválido (ejemplo@dominio.com)';
@@ -715,6 +749,7 @@ export function RegisterScreen({ navigation }) {
         documents: {
           licenseNumber: docs.licenseNumber.trim(),
           licensePhotoUri: docs.licensePhotoUri,
+          soatExpiry: (docs.soatExpiry || '').trim(),
           soatPhotoUri: docs.soatPhotoUri,
           tecnoPhotoUri: docs.tecnoPhotoUri,
           mpEmail: (docs.mpEmail || '').trim(),
@@ -783,7 +818,7 @@ export function RegisterScreen({ navigation }) {
                 </Text>
               </View>
 
-              {/* Indicador de sincronización en vivo con Firebase */}
+              {/* Indicador de estado de la cuenta */}
               <View
                 style={[
                   styles.liveSyncBadge,
@@ -810,8 +845,8 @@ export function RegisterScreen({ navigation }) {
                   ]}
                 >
                   {registeredDriverData?.status === 'approved'
-                    ? 'Sincronizado con Firebase: Aprobado en la Nube'
-                    : 'Sincronizado con Firebase: Esperando aprobación'}
+                    ? 'Cuenta habilitada para operar'
+                    : 'Cuenta en proceso de verificación'}
                 </Text>
               </View>
 
@@ -864,6 +899,12 @@ export function RegisterScreen({ navigation }) {
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Vigencia SOAT:</Text>
+                  <Text style={styles.detailValue}>
+                    {registeredDriverData?.documents?.soatExpiry || docs.soatExpiry || 'Vigente'}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Estado de Solicitud:</Text>
                   <Text
                     style={[
@@ -882,7 +923,7 @@ export function RegisterScreen({ navigation }) {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.approvedCelebrationTitle}>Documentación Validada</Text>
                     <Text style={styles.approvedCelebrationText}>
-                      Tu licencia, SOAT y revisión vehicular fueron aprobados desde la consola de Firebase.
+                      Tu licencia de conducción, póliza de SOAT y revisión vehicular fueron verificadas exitosamente.
                     </Text>
                   </View>
                 </View>
@@ -1350,6 +1391,21 @@ export function RegisterScreen({ navigation }) {
                   <Text style={styles.errorInlineText}>{errors.licensePhoto}</Text>
                 )}
               </View>
+
+              {/* Fecha de Vencimiento del SOAT (Vigencia Legal) */}
+              <InputWithValidation
+                label="Fecha de Vencimiento del SOAT (Mínimo 1 día de vigencia)"
+                placeholder="AAAA-MM-DD (Ej: 2027-11-20)"
+                value={docs.soatExpiry}
+                onChangeText={(txt) => {
+                  setDocs((d) => ({ ...d, soatExpiry: txt }));
+                  if (errors.soatExpiry) setErrors((e) => ({ ...e, soatExpiry: null }));
+                }}
+                error={errors.soatExpiry}
+                helperText="La ley de transporte exige que el SOAT tenga al menos 1 día de vigencia restante"
+                iconName="calendar-outline"
+                maxLength={10}
+              />
 
               {/* Carga de SOAT */}
               <View style={styles.docUploadBox}>

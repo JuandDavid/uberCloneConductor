@@ -693,10 +693,16 @@ export function RegisterScreen({ navigation }) {
               )}
 
               <CustomButton
+                title="Ver Panel de Aprobación"
+                onPress={() => navigation.navigate('PendingApproval')}
+                style={{ width: '100%', marginTop: spacing.md }}
+              />
+
+              <CustomButton
                 title="Modificar Datos / Volver al Formulario"
                 variant="outline"
                 onPress={() => setRegistrationSuccess(false)}
-                style={{ width: '100%', marginTop: spacing.md }}
+                style={{ width: '100%', marginTop: spacing.sm }}
               />
             </View>
           </ScrollView>

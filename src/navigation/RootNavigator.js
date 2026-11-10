@@ -1,12 +1,13 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
+import { PendingApprovalScreen } from '../screens/auth/PendingApprovalScreen';
 
 const Stack = createNativeStackNavigator();
 
 /**
  * Navegador principal tipo Stack de la aplicación.
- * Gestiona el flujo entre el registro de conductor y las pantallas principales.
+ * Gestiona el flujo entre el registro de conductor, estado de aprobación y pantallas principales.
  */
 export function RootNavigator() {
   return (
@@ -31,6 +32,14 @@ export function RootNavigator() {
         options={{
           title: 'Registro de Conductor',
           headerBackTitle: 'Atrás',
+        }}
+      />
+      <Stack.Screen
+        name="PendingApproval"
+        component={PendingApprovalScreen}
+        options={{
+          title: 'Estado de la Cuenta',
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

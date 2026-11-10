@@ -117,9 +117,51 @@ export async function updateDriverBalanceInDb(driverId, newBalance) {
   }
 }
 
+/**
+ * Busca un conductor en la colección 'drivers' por su número de documento (cédula) o correo electrónico.
+ * Implementa queries estructuradas de Firestore según las directrices de la docente.
+ *
+ * @param {string} identifier - Cédula o correo
+ * @returns {Promise<Object|null>}
+ */
+export async function findDriverByIdentifier(identifier) {
+  try {
+    const cleanId = String(identifier || '').trim();
+    if (!cleanId) return null;
+
+    // 1. Buscar coincidencia exacta por cédula (documentId)
+    const qDoc = query(
+      collection(db, DRIVERS_COLLECTION),
+      where('documentId', '==', cleanId)
+    );
+    const snapDoc = await getDocs(qDoc);
+    if (!snapDoc.empty) {
+      const docData = snapDoc.docs[0];
+      return { id: docData.id, ...docData.data() };
+    }
+
+    // 2. Buscar coincidencia por correo electrónico (email)
+    const qEmail = query(
+      collection(db, DRIVERS_COLLECTION),
+      where('email', '==', cleanId.toLowerCase())
+    );
+    const snapEmail = await getDocs(qEmail);
+    if (!snapEmail.empty) {
+      const docData = snapEmail.docs[0];
+      return { id: docData.id, ...docData.data() };
+    }
+
+    return null;
+  } catch (error) {
+    console.warn('dbService [findDriverByIdentifier]:', error.message);
+    return null;
+  }
+}
+
 export default {
   saveDriver,
   getDriver,
   updateDriverStatus,
   updateDriverBalanceInDb,
+  findDriverByIdentifier,
 };

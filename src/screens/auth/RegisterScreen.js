@@ -708,12 +708,33 @@ export function RegisterScreen({ navigation }) {
           </ScrollView>
         ) : (
           <>
-            {/* Encabezado */}
+            {/* Encabezado con enlace a Login */}
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Registro de Conductor</Text>
-              <Text style={styles.headerSubtitle}>
-                Completa las secciones requeridas para tu solicitud
-              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ flex: 1, paddingRight: spacing.sm }}>
+                  <Text style={styles.headerTitle}>Registro de Conductor</Text>
+                  <Text style={styles.headerSubtitle}>
+                    Completa las secciones requeridas para tu solicitud
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation?.navigate?.('Login')}
+                  style={{
+                    backgroundColor: colors.surface,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    marginTop: 2,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.black }}>
+                    Ingresar
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Barra de navegación por pestañas (Tab Bar) */}

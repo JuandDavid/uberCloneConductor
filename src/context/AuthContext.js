@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveDriver } from '../services/dbService';
+import { saveDriver, findDriverByIdentifier } from '../services/dbService';
 
 const AuthContext = createContext();
 
@@ -151,6 +151,41 @@ export function AuthProvider({ children }) {
     await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, newLang);
   };
 
+  // Iniciar sesión buscando conductor por cédula o correo
+  const loginWithIdentifier = async (identifier) => {
+    const cleanId = String(identifier || '').trim();
+    if (!cleanId) {
+      throw new Error('Ingresa tu cédula o correo electrónico');
+    }
+
+    // 1. Verificar si coincide con la sesión o el demo local
+    if (
+      driver &&
+      (String(driver.documentId).trim() === cleanId ||
+        driver.email?.toLowerCase().trim() === cleanId.toLowerCase())
+    ) {
+      await persistDriver(driver);
+      return driver;
+    }
+
+    if (
+      DEFAULT_DEMO_DRIVER.documentId === cleanId ||
+      DEFAULT_DEMO_DRIVER.email.toLowerCase() === cleanId.toLowerCase()
+    ) {
+      await persistDriver(DEFAULT_DEMO_DRIVER);
+      return DEFAULT_DEMO_DRIVER;
+    }
+
+    // 2. Buscar en Firestore (colección 'drivers')
+    const foundDriver = await findDriverByIdentifier(cleanId);
+    if (foundDriver) {
+      await persistDriver(foundDriver);
+      return foundDriver;
+    }
+
+    throw new Error('No se encontró ningún conductor con este documento o correo');
+  };
+
   // Cerrar sesión
   const logout = async () => {
     await AsyncStorage.removeItem(STORAGE_KEYS.DRIVER_SESSION);
@@ -161,10 +196,12 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         driver,
+        setDriver,
         isApproved: driver?.status === 'approved',
         language,
         isLoading,
         registerDriver,
+        loginWithIdentifier,
         toggleApprovalStatus,
         updateDriverProfile,
         updateDriverBalance,

@@ -158,10 +158,107 @@ export async function findDriverByIdentifier(identifier) {
   }
 }
 
+// ==========================================
+// 2. VIAJES (Colección 'trips')
+// ==========================================
+
+/**
+ * Guarda o actualiza un viaje en la colección 'trips'.
+ * Cumple con el estándar de la docente: setDoc con { merge: true }.
+ * 
+ * @param {Object} tripData - Datos completos del viaje
+ * @returns {Promise<Object>} Viaje guardado
+ */
+export async function saveTrip(tripData) {
+  try {
+    const tripId = tripData.id || `trip_${Date.now()}`;
+    const docRef = doc(db, TRIPS_COLLECTION, tripId);
+    const dataToSave = {
+      ...tripData,
+      id: tripId,
+      updatedAt: new Date().toISOString(),
+      createdAt: tripData.createdAt || new Date().toISOString(),
+    };
+    await setDoc(docRef, dataToSave, { merge: true });
+    return dataToSave;
+  } catch (error) {
+    console.warn('dbService [saveTrip]:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza el estado operativo y marcas de tiempo de un viaje en Firestore.
+ * 
+ * @param {string} tripId
+ * @param {string} status - 'requested' | 'accepted' | 'arrived' | 'in_progress' | 'completed' | 'cancelled'
+ * @param {Object} additionalData - Campos opcionales (e.g. arrivedAt, startedAt, completedAt, cancelReason)
+ */
+export async function updateTripStatus(tripId, status, additionalData = {}) {
+  try {
+    const docRef = doc(db, TRIPS_COLLECTION, tripId);
+    await updateDoc(docRef, {
+      status,
+      ...additionalData,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.warn('dbService [updateTripStatus]:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene los detalles de un viaje por su ID.
+ * 
+ * @param {string} tripId
+ * @returns {Promise<Object|null>}
+ */
+export async function getTrip(tripId) {
+  try {
+    const docRef = doc(db, TRIPS_COLLECTION, tripId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return { id: snap.id, ...snap.data() };
+    }
+    return null;
+  } catch (error) {
+    console.warn('dbService [getTrip]:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Obtiene el historial de viajes de un conductor específico.
+ * 
+ * @param {string} driverId
+ * @returns {Promise<Array>} Lista de viajes ordenados cronológicamente
+ */
+export async function getDriverTrips(driverId) {
+  try {
+    if (!driverId) return [];
+    const q = query(
+      collection(db, TRIPS_COLLECTION),
+      where('driverId', '==', driverId)
+    );
+    const snap = await getDocs(q);
+    const trips = [];
+    snap.forEach((d) => trips.push({ id: d.id, ...d.data() }));
+    return trips.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  } catch (error) {
+    console.warn('dbService [getDriverTrips]:', error.message);
+    return [];
+  }
+}
+
 export default {
   saveDriver,
   getDriver,
   updateDriverStatus,
   updateDriverBalanceInDb,
   findDriverByIdentifier,
+  saveTrip,
+  updateTripStatus,
+  getTrip,
+  getDriverTrips,
 };

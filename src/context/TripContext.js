@@ -3,7 +3,13 @@ import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import { calculateTripFare, formatCOP } from '../config/pricing';
 import { db } from '../config/firebase';
-import { updateDriverBalanceInDb, TRIPS_COLLECTION, DRIVERS_COLLECTION } from '../services/dbService';
+import {
+  saveTrip,
+  updateTripStatus,
+  updateDriverBalanceInDb,
+  TRIPS_COLLECTION,
+  DRIVERS_COLLECTION,
+} from '../services/dbService';
 
 const TripContext = createContext();
 
@@ -142,50 +148,60 @@ export function TripProvider({ children }) {
     [isOnline, driver, setOnlineStatus]
   );
 
-  // Aceptar la solicitud de viaje
+  // Aceptar la solicitud de viaje y persistir en Firestore
   const acceptTrip = useCallback(async () => {
     if (!activeTrip) return;
 
+    const acceptedAt = new Date().toISOString();
     const updated = {
       ...activeTrip,
       status: TRIP_STATUS.ACCEPTED,
-      acceptedAt: new Date().toISOString(),
+      acceptedAt,
     };
 
     setActiveTrip(updated);
     setTripState(TRIP_STATUS.ACCEPTED);
 
-    // Persistir en Firestore colección 'trips'
+    // Persistir en Firestore colección 'trips' usando el servicio centralizado (Regla docente)
     try {
-      const tripRef = doc(db, TRIPS_COLLECTION, updated.id);
-      await setDoc(tripRef, updated, { merge: true });
+      await saveTrip(updated);
     } catch (err) {
       console.warn('TripContext [acceptTrip]: Error al guardar en trips:', err.message);
     }
   }, [activeTrip]);
 
   // Rechazar o ignorar la solicitud de viaje
-  const rejectTrip = useCallback(() => {
+  const rejectTrip = useCallback(async (reason = 'declined_by_driver') => {
+    if (activeTrip?.id) {
+      try {
+        await updateTripStatus(activeTrip.id, TRIP_STATUS.CANCELLED, {
+          cancelReason: reason,
+          cancelledAt: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn('TripContext [rejectTrip]: Error al actualizar cancelacion en trips:', err.message);
+      }
+    }
     setActiveTrip(null);
     setTripState(TRIP_STATUS.IDLE);
-  }, []);
+  }, [activeTrip]);
 
   // Notificar llegada al punto de recogida
   const notifyArrival = useCallback(async () => {
     if (!activeTrip) return;
 
+    const arrivedAt = new Date().toISOString();
     const updated = {
       ...activeTrip,
       status: TRIP_STATUS.ARRIVED,
-      arrivedAt: new Date().toISOString(),
+      arrivedAt,
     };
 
     setActiveTrip(updated);
     setTripState(TRIP_STATUS.ARRIVED);
 
     try {
-      const tripRef = doc(db, TRIPS_COLLECTION, updated.id);
-      await updateDoc(tripRef, { status: TRIP_STATUS.ARRIVED });
+      await updateTripStatus(updated.id, TRIP_STATUS.ARRIVED, { arrivedAt });
     } catch (err) {
       console.warn('TripContext [notifyArrival]:', err.message);
     }
@@ -195,18 +211,18 @@ export function TripProvider({ children }) {
   const startTrip = useCallback(async () => {
     if (!activeTrip) return;
 
+    const startedAt = new Date().toISOString();
     const updated = {
       ...activeTrip,
       status: TRIP_STATUS.IN_PROGRESS,
-      startedAt: new Date().toISOString(),
+      startedAt,
     };
 
     setActiveTrip(updated);
     setTripState(TRIP_STATUS.IN_PROGRESS);
 
     try {
-      const tripRef = doc(db, TRIPS_COLLECTION, updated.id);
-      await updateDoc(tripRef, { status: TRIP_STATUS.IN_PROGRESS });
+      await updateTripStatus(updated.id, TRIP_STATUS.IN_PROGRESS, { startedAt });
     } catch (err) {
       console.warn('TripContext [startTrip]:', err.message);
     }
@@ -216,11 +232,12 @@ export function TripProvider({ children }) {
   const finishTrip = useCallback(async () => {
     if (!activeTrip) return;
 
+    const completedAt = new Date().toISOString();
     const netEarnings = activeTrip.driverEarnings;
     const updated = {
       ...activeTrip,
       status: TRIP_STATUS.COMPLETED,
-      completedAt: new Date().toISOString(),
+      completedAt,
     };
 
     setActiveTrip(updated);
@@ -235,11 +252,7 @@ export function TripProvider({ children }) {
 
     // 2. Persistir viaje completado en Firestore
     try {
-      const tripRef = doc(db, TRIPS_COLLECTION, updated.id);
-      await updateDoc(tripRef, {
-        status: TRIP_STATUS.COMPLETED,
-        completedAt: updated.completedAt,
-      });
+      await updateTripStatus(updated.id, TRIP_STATUS.COMPLETED, { completedAt });
 
       // 3. Persistir saldo nuevo en la colección 'drivers'
       if (driver?.id) {

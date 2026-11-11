@@ -40,17 +40,21 @@ const DEFAULT_COORDS = {
 
 /**
  * Pantalla Principal del Conductor (HomeScreen)
- * Módulo de Geolocalización y Mapa Interactivo (Commit 42)
+ * Módulos:
+ * - Commit 42: Geolocalización GPS y Mapa Interactivo
+ * - Commit 43: Switch Circular Online/Offline sincronizado con Firestore
  * 
  * Reglas académicas (Docente Paula Andrea Muñoz Correa):
- * 1. Integra react-native-maps y expo-location con solicitud de permisos en primer plano.
- * 2. Cero diálogos modales de Alert; fallos de geolocalización se informan mediante banner visual.
- * 3. Proporciona fallback visual interactivo en Web para evitar caídas en emuladores o navegador.
+ * 1. El switch actualiza 'isOnline' en Firestore ('drivers').
+ * 2. Cero popups de Alert; todo feedback visual se despliega inline con banners estilizados.
+ * 3. Incorpora disparador de viajes demo para sustentación presencial en clase.
  */
 export function HomeScreen({ navigation }) {
   const { driver } = useAuth();
   const {
     isOnline,
+    toggleOnlineStatus,
+    simulateIncomingTrip,
     tripState,
     activeTrip,
     dailyEarnings,
@@ -63,6 +67,8 @@ export function HomeScreen({ navigation }) {
   const [locationPermission, setLocationPermission] = useState('pending'); // 'granted' | 'denied' | 'pending'
   const [isLocating, setIsLocating] = useState(true);
   const [locationStatusMessage, setLocationStatusMessage] = useState(null);
+  const [isTogglingOnline, setIsTogglingOnline] = useState(false);
+  const [onlineFeedback, setOnlineFeedback] = useState(null);
 
   // Solicitar permisos de GPS y obtener ubicación actual
   useEffect(() => {
@@ -118,6 +124,25 @@ export function HomeScreen({ navigation }) {
   const handleRecenter = () => {
     if (mapRef.current && currentCoords) {
       mapRef.current.animateToRegion(currentCoords, 600);
+    }
+  };
+
+  // Alternar disponibilidad Online / Offline sincronizando con Firestore
+  const handleToggleOnline = async () => {
+    try {
+      setIsTogglingOnline(true);
+      await toggleOnlineStatus();
+      const willBeOnline = !isOnline;
+      setOnlineFeedback(
+        willBeOnline
+          ? '¡Estás en línea! Tu vehículo está visible para solicitudes de viaje.'
+          : 'Te has desconectado. Ya no recibirás nuevas solicitudes.'
+      );
+      setTimeout(() => setOnlineFeedback(null), 3800);
+    } catch (err) {
+      console.warn('HomeScreen [handleToggleOnline]:', err);
+    } finally {
+      setIsTogglingOnline(false);
     }
   };
 
@@ -198,8 +223,22 @@ export function HomeScreen({ navigation }) {
         </View>
       </View>
 
+      {/* BANNER DE NOTIFICACIÓN FEEDBACK (ONLINE / OFFLINE) */}
+      {onlineFeedback && (
+        <View style={[styles.feedbackBanner, isOnline ? styles.feedbackBannerOnline : styles.feedbackBannerOffline]}>
+          <Ionicons
+            name={isOnline ? 'radio-button-on' : 'power-outline'}
+            size={16}
+            color={isOnline ? '#15803D' : '#4B5563'}
+          />
+          <Text style={[styles.feedbackBannerText, isOnline ? styles.feedbackBannerTextOnline : styles.feedbackBannerTextOffline]}>
+            {onlineFeedback}
+          </Text>
+        </View>
+      )}
+
       {/* BANNER INFORMATIVO DE GEOLOCALIZACIÓN */}
-      {locationStatusMessage && (
+      {locationStatusMessage && !onlineFeedback && (
         <View style={styles.locationBanner}>
           <Ionicons name="location-outline" size={16} color="#B45309" />
           <Text style={styles.locationBannerText}>{locationStatusMessage}</Text>
@@ -215,9 +254,39 @@ export function HomeScreen({ navigation }) {
         <Ionicons name="locate" size={24} color={colors.black} />
       </TouchableOpacity>
 
+      {/* BOTÓN CIRCULAR CENTRAL DE CONEXIÓN (ESTILO UBER GO) */}
+      <View style={styles.goButtonContainer} pointerEvents="box-none">
+        <TouchableOpacity
+          style={[
+            styles.goButton,
+            isOnline ? styles.goButtonOnline : styles.goButtonOffline,
+            isTogglingOnline && styles.goButtonLoading,
+          ]}
+          onPress={handleToggleOnline}
+          disabled={isTogglingOnline}
+          activeOpacity={0.85}
+        >
+          {isTogglingOnline ? (
+            <ActivityIndicator size="small" color={colors.white} />
+          ) : isOnline ? (
+            <View style={styles.goButtonContent}>
+              <Ionicons name="power" size={26} color={colors.white} />
+              <Text style={styles.goButtonLabelOnline}>DESCONECTAR</Text>
+            </View>
+          ) : (
+            <View style={styles.goButtonContent}>
+              <Text style={styles.goButtonLabelMain}>INICIAR</Text>
+              <Text style={styles.goButtonLabelSub}>CONECTAR</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* PANEL INFERIOR DE RESUMEN OPERATIVO */}
       <View style={styles.bottomSheetPreview}>
         <View style={styles.dragPill} />
+
+        {/* Resumen de Métricas */}
         <View style={styles.statsSummaryRow}>
           <View style={styles.statColumn}>
             <Text style={styles.statValue}>{formattedDailyEarnings || '$ 0'}</Text>
@@ -234,6 +303,30 @@ export function HomeScreen({ navigation }) {
             <Text style={styles.statLabel}>Calificación</Text>
           </View>
         </View>
+
+        {/* Radar en vivo cuando está conectado */}
+        {isOnline && (
+          <View style={styles.radarNoticeRow}>
+            <View style={styles.radarPulseDot} />
+            <Text style={styles.radarNoticeText}>
+              Buscando solicitudes de viaje en tu zona de cobertura...
+            </Text>
+          </View>
+        )}
+
+        {/* Botón de Demostración Docente (Paula Andrea) */}
+        {isOnline && (
+          <TouchableOpacity
+            style={styles.demoTriggerButton}
+            onPress={() => simulateIncomingTrip(0)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="flash" size={15} color="#D97706" />
+            <Text style={styles.demoTriggerText}>
+              Simular Solicitud de Viaje Entrante (Sustentación)
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -330,6 +423,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     borderWidth: 1,
     borderColor: colors.borderLight,
+    zIndex: 10,
   },
   headerLeftRow: {
     flexDirection: 'row',
@@ -394,6 +488,45 @@ const styles = StyleSheet.create({
   statusPillTextOffline: {
     color: '#4B5563',
   },
+  feedbackBanner: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 120 : 86,
+    left: spacing.md,
+    right: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    elevation: 5,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    zIndex: 10,
+  },
+  feedbackBannerOnline: {
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  feedbackBannerOffline: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  feedbackBannerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  feedbackBannerTextOnline: {
+    color: '#15803D',
+  },
+  feedbackBannerTextOffline: {
+    color: '#374151',
+  },
   locationBanner: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 120 : 86,
@@ -408,6 +541,7 @@ const styles = StyleSheet.create({
     gap: 6,
     borderWidth: 1,
     borderColor: '#FDE68A',
+    zIndex: 10,
   },
   locationBannerText: {
     fontSize: 12,
@@ -418,20 +552,77 @@ const styles = StyleSheet.create({
   recenterFab: {
     position: 'absolute',
     right: spacing.md,
-    bottom: 120,
+    bottom: 220,
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
+    elevation: 6,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     borderWidth: 1,
     borderColor: colors.border,
+    zIndex: 10,
+  },
+  goButtonContainer: {
+    position: 'absolute',
+    bottom: 125,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
+  },
+  goButton: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 10,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  goButtonOffline: {
+    backgroundColor: '#000000',
+  },
+  goButtonOnline: {
+    backgroundColor: '#E11900', // Rojo para desconectar cuando está online
+  },
+  goButtonLoading: {
+    opacity: 0.8,
+  },
+  goButtonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goButtonLabelMain: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.white,
+    letterSpacing: 1,
+  },
+  goButtonLabelSub: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#D1D5DB',
+    letterSpacing: 0.5,
+    marginTop: 1,
+  },
+  goButtonLabelOnline: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.white,
+    marginTop: 2,
+    letterSpacing: 0.5,
   },
   bottomSheetPreview: {
     position: 'absolute',
@@ -439,20 +630,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingTop: spacing.xs,
     paddingBottom: Platform.OS === 'ios' ? spacing.lg : spacing.md,
-    elevation: 10,
+    elevation: 12,
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
     borderTopWidth: 1,
     borderColor: colors.borderLight,
+    zIndex: 15,
   },
   dragPill: {
-    width: 36,
+    width: 38,
     height: 4,
     borderRadius: 2,
     backgroundColor: '#D1D5DB',
@@ -465,6 +657,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.xs,
+    paddingBottom: spacing.xs,
   },
   statColumn: {
     alignItems: 'center',
@@ -483,6 +676,49 @@ const styles = StyleSheet.create({
     width: 1,
     height: 28,
     backgroundColor: colors.borderLight,
+  },
+  radarNoticeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  radarPulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#16A34A',
+  },
+  radarNoticeText: {
+    fontSize: 11,
+    color: '#15803D',
+    fontWeight: '600',
+    flex: 1,
+  },
+  demoTriggerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF3C7',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.xs + 2,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  demoTriggerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400E',
   },
 });
 

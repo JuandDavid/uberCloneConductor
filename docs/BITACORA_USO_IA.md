@@ -67,3 +67,17 @@ El uso de la Inteligencia Artificial como mentor técnico permitió al equipo:
 1. Comprender a fondo el flujo de ciclo de vida de los componentes en React Native (`useState`, `useEffect`, `useMemo`).
 2. Entender la arquitectura en capas (UI en `components/`, Estado en `context/`, Lógica de negocio en `screens/`, y Acceso a datos en `services/`).
 3. Aprender a interpretar mensajes de error en Expo y tomar decisiones de ingeniería conscientes basadas en los requerimientos del docente y no en soluciones prefabricadas.
+
+---
+
+## 6. Actualización Entrega 2: Ciclo de Viajes, Geoubicación y Arquitectura Financiera
+
+Durante el desarrollo de la Entrega 2 (Commits 37 al 52, liderados por Juan David para nivelar el repositorio al 50%/50% con 26 commits cada uno), se llevaron a cabo sesiones adicionales de consulta técnica:
+
+| Sesión / Fecha | Objetivo de la Consulta al Mentor IA | Prompt / Pregunta Orientadora del Estudiante | Análisis y Aporte Crítico del Equipo (Estudiantes) | Decisión Técnica Final Implementada |
+| :---: | :--- | :--- | :--- | :--- |
+| **Sesión 6**<br>10 Noviembre | **Máquina de Estados de Viaje y Ciclo Operativo** | *"¿Cómo estructuramos un `TripContext` en React Native que maneje las fases del viaje (requested, accepted, arrived, in_progress, completed) sincronizando con Firestore?"* | Analizamos que el conductor debe poder continuar operando incluso si recarga la app. Modelamos las transiciones atómicas y definimos la colección oficial `trips` en Firestore. | Se construyó `src/context/TripContext.js` conectado a `dbService.js` con persistencia de estados y marcas de tiempo (`arrivedAt`, `startedAt`, `completedAt`). |
+| **Sesión 7**<br>10 Noviembre | **Geolocalización GPS y Soporte Dual Móvil/Web** | *"Al probar en Expo Web, `react-native-maps` genera errores porque es una biblioteca nativa. ¿Cómo logramos que funcione tanto en celulares Android como en navegadores web?"* | Descubrimos que la importación dinámica y condicional de `react-native-maps` junto con un radar visual de respaldo permite que la app sea probada en cualquier entorno sin crasheos. | Implementación condicional en `HomeScreen.js` y `ActiveTripScreen.js` con fallback web y marcador GPS centralizado. |
+| **Sesión 8**<br>10 Noviembre | **Liquidación Financiera y Modo Privacidad** | *"En un carro con pasajeros es peligroso que la pantalla muestre todo el tiempo cuánto dinero lleva ganado el conductor. ¿Cómo implementamos un modo privacidad y el recibo final?"* | Diseñamos un botón de ojo en `HeaderConductor` para alternar la visualización del saldo con asteriscos (`••••••`), y un modal de liquidación `TripReceiptModal` que distingue entre cobro en efectivo y cobro digital. | Creación de `HeaderConductor.js` con modo privacidad y `TripReceiptModal.js` con calificación de estrellas al pasajero. |
+| **Sesión 9**<br>10 Noviembre | **Pestañas Inferiores e Integración de Navegación** | *"¿Cómo integramos un BottomTabNavigator para Conducir, Ganancias y Perfil sin romper las rutas existentes de Login y PendingApproval?"* | Diseñamos una arquitectura híbrida donde `RootNavigator` gestiona la pila condicional de autenticación y modales a pantalla completa (`ActiveTrip`), mientras que la ruta `Home` monta el `MainTabNavigator`. | Creación de `src/navigation/MainTabNavigator.js` con 3 pestañas y registro fluido en `RootNavigator.js`. |
+

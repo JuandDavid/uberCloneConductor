@@ -5,8 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { PendingApprovalScreen } from '../screens/auth/PendingApprovalScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
-import { HomeScreen } from '../screens/main/HomeScreen';
 import { ActiveTripScreen } from '../screens/trips/ActiveTripScreen';
+import { MainTabNavigator } from './MainTabNavigator';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing } from '../styles/theme';
 
@@ -90,9 +90,9 @@ export function RootNavigator() {
           />
           <Stack.Screen
             name="Home"
-            component={HomeScreen}
+            component={MainTabNavigator}
             options={{
-              title: 'Mapa Conductor',
+              title: 'Principal Conductor',
               headerShown: false,
             }}
           />
@@ -118,9 +118,9 @@ export function RootNavigator() {
         <>
           <Stack.Screen
             name="Home"
-            component={HomeScreen}
+            component={MainTabNavigator}
             options={{
-              title: 'Mapa Conductor',
+              title: 'Principal Conductor',
               headerShown: false,
             }}
           />

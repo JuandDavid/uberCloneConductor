@@ -46,12 +46,11 @@ export function LoginScreen({ navigation }) {
       setIsLoading(true);
       const loggedDriver = await loginWithIdentifier(idToUse);
 
-      // Redirección inteligente según el estado del conductor
-      if (loggedDriver.status === 'pending_approval') {
-        navigation.navigate('PendingApproval');
-      } else {
-        // En fases posteriores redirigirá al Home Conductor
-        navigation.navigate('PendingApproval');
+      // La navegación condicional en RootNavigator conmuta automáticamente de pila
+      if (navigation?.navigate) {
+        try {
+          navigation.navigate('PendingApproval');
+        } catch (_) {}
       }
     } catch (err) {
       setError(err.message || 'No se encontró ningún conductor con los datos ingresados');

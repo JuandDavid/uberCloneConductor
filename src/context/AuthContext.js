@@ -48,7 +48,7 @@ const DEFAULT_DEMO_DRIVER = {
  * Gestiona la sesión activa y almacenamiento local persistente con AsyncStorage.
  */
 export function AuthProvider({ children }) {
-  const [driver, setDriver] = useState(DEFAULT_DEMO_DRIVER);
+  const [driver, setDriver] = useState(null);
   const [language, setLanguage] = useState('es');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,10 +64,7 @@ export function AuthProvider({ children }) {
         if (storedSession) {
           setDriver(JSON.parse(storedSession));
         } else {
-          await AsyncStorage.setItem(
-            STORAGE_KEYS.DRIVER_SESSION,
-            JSON.stringify(DEFAULT_DEMO_DRIVER)
-          );
+          setDriver(null);
         }
 
         if (storedLang) {

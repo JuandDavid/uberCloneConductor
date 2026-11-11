@@ -308,6 +308,14 @@ export function PendingApprovalScreen({ navigation }) {
 
         {/* Botones de Acción */}
         <View style={styles.actionsContainer}>
+          {isApproved && (
+            <CustomButton
+              title="Abrir Mapa del Conductor"
+              onPress={() => navigation?.navigate?.('Home')}
+              style={{ width: '100%', marginBottom: spacing.sm }}
+            />
+          )}
+
           <CustomButton
             title="Consultar Estado en Tiempo Real"
             variant="secondary"

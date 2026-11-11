@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { PendingApprovalScreen } from '../screens/auth/PendingApprovalScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
+import { HomeScreen } from '../screens/main/HomeScreen';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing } from '../styles/theme';
 
@@ -16,7 +17,7 @@ const Stack = createNativeStackNavigator();
  * 1. Controla el flujo dinámico según el estado de la sesión en AuthContext:
  *    - Si no hay sesión activa: Muestra LoginScreen y RegisterScreen.
  *    - Si la cuenta está en revisión ('pending_approval'): Dirige a PendingApprovalScreen.
- *    - Si la cuenta está aprobada ('approved'): Habilita la operación del conductor.
+ *    - Si la cuenta está aprobada ('approved'): Abre HomeScreen con mapa interactivo y geolocalización.
  * 2. Despliega un splash/loading con tema oscuro corporativo mientras se verifica AsyncStorage.
  * 3. Transición limpia y sin destellos entre estados.
  */
@@ -41,7 +42,7 @@ export function RootNavigator() {
 
   return (
     <Stack.Navigator
-      initialRouteName={!driver ? 'Login' : 'PendingApproval'}
+      initialRouteName={!driver ? 'Login' : isPending ? 'PendingApproval' : 'Home'}
       screenOptions={{
         headerShown: true,
         headerStyle: {
@@ -87,6 +88,14 @@ export function RootNavigator() {
             }}
           />
           <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: 'Mapa Conductor',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="Register"
             component={RegisterScreen}
             options={{
@@ -97,8 +106,15 @@ export function RootNavigator() {
         </>
       ) : (
         // --- FLUJO 3: CONDUCTOR APROBADO (HABILITADO PARA OPERAR) ---
-        // En los próximos commits (Fase B) aquí se montará el HomeScreen interactivo
         <>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: 'Mapa Conductor',
+              headerShown: false,
+            }}
+          />
           <Stack.Screen
             name="PendingApproval"
             component={PendingApprovalScreen}

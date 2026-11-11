@@ -14,6 +14,7 @@ import * as Location from 'expo-location';
 import { colors, spacing } from '../../styles/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
+import { HeaderConductor } from '../../components/HeaderConductor';
 
 // Importación condicional de react-native-maps para soporte nativo y web
 let MapView = null;
@@ -194,34 +195,15 @@ export function HomeScreen({ navigation }) {
         )}
       </View>
 
-      {/* CABECERA SUPERIOR FLOTANTE */}
-      <View style={styles.topFloatingCard}>
-        <View style={styles.headerLeftRow}>
-          <TouchableOpacity
-            style={styles.profileAvatarButton}
-            onPress={() => navigation?.navigate?.('PendingApproval')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="shield-checkmark" size={18} color="#15803D" />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.driverGreeting} numberOfLines={1}>
-              {driver?.fullName || 'Conductor'}
-            </Text>
-            <Text style={styles.driverSubinfo}>
-              {driver?.vehicle?.plate || 'ABC123'} • {(driver?.vehicle?.category || 'economy').toUpperCase()}
-            </Text>
-          </View>
-        </View>
-
-        {/* Indicador de Disponibilidad */}
-        <View style={[styles.statusPill, isOnline ? styles.statusPillOnline : styles.statusPillOffline]}>
-          <View style={[styles.statusDot, isOnline ? styles.statusDotOnline : styles.statusDotOffline]} />
-          <Text style={[styles.statusPillText, isOnline ? styles.statusPillTextOnline : styles.statusPillTextOffline]}>
-            {isOnline ? 'ONLINE' : 'OFFLINE'}
-          </Text>
-        </View>
-      </View>
+      {/* CABECERA MODULAR DEL CONDUCTOR (Commit 44) */}
+      <HeaderConductor
+        driver={driver}
+        isOnline={isOnline}
+        dailyEarnings={dailyEarnings}
+        formattedDailyEarnings={formattedDailyEarnings}
+        completedTripsCount={completedTripsCount}
+        onProfilePress={() => navigation?.navigate?.('PendingApproval')}
+      />
 
       {/* BANNER DE NOTIFICACIÓN FEEDBACK (ONLINE / OFFLINE) */}
       {onlineFeedback && (
@@ -404,93 +386,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  topFloatingCard: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 54 : 20,
-    left: spacing.md,
-    right: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 6,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    zIndex: 10,
-  },
-  headerLeftRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: spacing.sm,
-  },
-  profileAvatarButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-  },
-  driverGreeting: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  driverSubinfo: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 1,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
-    gap: 6,
-  },
-  statusPillOnline: {
-    backgroundColor: '#DCFCE7',
-  },
-  statusPillOffline: {
-    backgroundColor: '#F3F4F6',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusDotOnline: {
-    backgroundColor: '#16A34A',
-  },
-  statusDotOffline: {
-    backgroundColor: '#6B7280',
-  },
-  statusPillText: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  statusPillTextOnline: {
-    color: '#15803D',
-  },
-  statusPillTextOffline: {
-    color: '#4B5563',
-  },
   feedbackBanner: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 120 : 86,
+    top: Platform.OS === 'ios' ? 148 : 115,
     left: spacing.md,
     right: spacing.md,
     paddingHorizontal: spacing.md,
@@ -529,7 +427,7 @@ const styles = StyleSheet.create({
   },
   locationBanner: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 120 : 86,
+    top: Platform.OS === 'ios' ? 148 : 115,
     left: spacing.md,
     right: spacing.md,
     backgroundColor: '#FEF3C7',

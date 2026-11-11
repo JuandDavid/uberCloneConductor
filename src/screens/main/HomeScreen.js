@@ -164,8 +164,11 @@ export function HomeScreen({ navigation }) {
   const handleAcceptTripModal = async () => {
     try {
       await acceptTrip();
-      setOnlineFeedback('¡Viaje aceptado! Dirigiéndote al punto de recogida.');
-      setTimeout(() => setOnlineFeedback(null), 4000);
+      setOnlineFeedback('¡Viaje aceptado! Abriendo navegación paso a paso...');
+      setTimeout(() => {
+        setOnlineFeedback(null);
+        navigation?.navigate?.('ActiveTrip');
+      }, 700);
     } catch (err) {
       console.warn('HomeScreen [handleAcceptTripModal]:', err);
     }
@@ -486,8 +489,12 @@ export function HomeScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Dirección Objetivo Inmediata */}
-          <View style={styles.activeTargetAddressBox}>
+          {/* Dirección Objetivo Inmediata con acceso a HUD de Navegación */}
+          <TouchableOpacity
+            style={styles.activeTargetAddressBox}
+            onPress={() => navigation?.navigate?.('ActiveTrip')}
+            activeOpacity={0.7}
+          >
             <Ionicons
               name={tripState === TRIP_STATUS.IN_PROGRESS ? 'navigate' : 'pin'}
               size={18}
@@ -495,13 +502,14 @@ export function HomeScreen({ navigation }) {
             />
             <View style={styles.activeTargetTextWrap}>
               <Text style={styles.activeTargetLabel}>
-                {tripState === TRIP_STATUS.IN_PROGRESS ? 'DESTINO FINAL DEL VIAJE' : 'PUNTO DE RECOGIDA'}
+                {tripState === TRIP_STATUS.IN_PROGRESS ? 'DESTINO FINAL DEL VIAJE' : 'PUNTO DE RECOGIDA'} (Toca para HUD)
               </Text>
               <Text style={styles.activeTargetAddress} numberOfLines={2}>
                 {tripState === TRIP_STATUS.IN_PROGRESS ? activeTrip.dropoff?.address : activeTrip.pickup?.address}
               </Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
 
           {/* Botón Principal de Avance de Estado */}
           <TouchableOpacity

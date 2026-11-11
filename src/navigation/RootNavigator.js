@@ -6,6 +6,7 @@ import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { PendingApprovalScreen } from '../screens/auth/PendingApprovalScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { HomeScreen } from '../screens/main/HomeScreen';
+import { ActiveTripScreen } from '../screens/trips/ActiveTripScreen';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing } from '../styles/theme';
 
@@ -103,6 +104,14 @@ export function RootNavigator() {
               headerBackTitle: 'Atrás',
             }}
           />
+          <Stack.Screen
+            name="ActiveTrip"
+            component={ActiveTripScreen}
+            options={{
+              title: 'Navegación en Curso',
+              headerShown: false,
+            }}
+          />
         </>
       ) : (
         // --- FLUJO 3: CONDUCTOR APROBADO (HABILITADO PARA OPERAR) ---
@@ -112,6 +121,14 @@ export function RootNavigator() {
             component={HomeScreen}
             options={{
               title: 'Mapa Conductor',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="ActiveTrip"
+            component={ActiveTripScreen}
+            options={{
+              title: 'Navegación en Curso',
               headerShown: false,
             }}
           />

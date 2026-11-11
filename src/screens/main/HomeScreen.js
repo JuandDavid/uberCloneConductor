@@ -15,6 +15,7 @@ import { colors, spacing } from '../../styles/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
 import { HeaderConductor } from '../../components/HeaderConductor';
+import { IncomingTripModal } from '../../components/IncomingTripModal';
 
 // Importación condicional de react-native-maps para soporte nativo y web
 let MapView = null;
@@ -58,6 +59,8 @@ export function HomeScreen({ navigation }) {
     simulateIncomingTrip,
     tripState,
     activeTrip,
+    acceptTrip,
+    rejectTrip,
     dailyEarnings,
     formattedDailyEarnings,
     completedTripsCount,
@@ -310,6 +313,15 @@ export function HomeScreen({ navigation }) {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* MODAL DE SOLICITUD DE VIAJE ENTRANTE (Commit 45) */}
+      <IncomingTripModal
+        visible={tripState === TRIP_STATUS.REQUESTED && Boolean(activeTrip)}
+        trip={activeTrip}
+        onAccept={acceptTrip}
+        onDecline={rejectTrip}
+        timeoutSeconds={15}
+      />
     </SafeAreaView>
   );
 }

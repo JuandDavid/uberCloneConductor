@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
 import { HeaderConductor } from '../../components/HeaderConductor';
 import { IncomingTripModal } from '../../components/IncomingTripModal';
+import { TripReceiptModal } from '../../components/TripReceiptModal';
 
 // Importación condicional de react-native-maps para soporte nativo y web
 let MapView = null;
@@ -204,6 +205,12 @@ export function HomeScreen({ navigation }) {
     rejectTrip('cancelled_by_driver');
     setOnlineFeedback('Servicio cancelado. Volviendo a modo disponible.');
     setTimeout(() => setOnlineFeedback(null), 3500);
+  };
+
+  const handleConfirmPaymentReceipt = () => {
+    resetTrip();
+    setOnlineFeedback('¡Cobro registrado! Saldo acumulado actualizado en tu cuenta.');
+    setTimeout(() => setOnlineFeedback(null), 4000);
   };
 
   const getStatusBadgeStyle = (status) => {
@@ -585,6 +592,13 @@ export function HomeScreen({ navigation }) {
         onAccept={handleAcceptTripModal}
         onDecline={handleDeclineTripModal}
         timeoutSeconds={15}
+      />
+
+      {/* MODAL DE LIQUIDACIÓN Y RECIBO DE VIAJE (Commit 48) */}
+      <TripReceiptModal
+        visible={tripState === TRIP_STATUS.COMPLETED && Boolean(activeTrip)}
+        trip={activeTrip}
+        onConfirmPayment={handleConfirmPaymentReceipt}
       />
     </SafeAreaView>
   );

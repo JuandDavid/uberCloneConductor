@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../styles/theme';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
+import { TripReceiptModal } from '../../components/TripReceiptModal';
 
 // Importación condicional de react-native-maps para soporte móvil y web
 let MapView = null;
@@ -46,6 +47,7 @@ export function ActiveTripScreen({ navigation }) {
     startTrip,
     finishTrip,
     rejectTrip,
+    resetTrip,
   } = useTrip();
 
   const [feedbackMessage, setFeedbackMessage] = useState(null);
@@ -108,17 +110,20 @@ export function ActiveTripScreen({ navigation }) {
         setTimeout(() => setFeedbackMessage(null), 3500);
       } else if (isTripInProgress) {
         await finishTrip();
-        setFeedbackMessage('¡Viaje completado! La tarifa ha sido liquidada.');
-        setTimeout(() => {
-          setFeedbackMessage(null);
-          navigation?.navigate?.('Home');
-        }, 1800);
+        setFeedbackMessage('¡Viaje completado! Generando recibo de cobro...');
+        setTimeout(() => setFeedbackMessage(null), 3000);
       }
     } catch (err) {
       console.warn('ActiveTripScreen [handlePrimaryAction]:', err);
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // Confirmar cobro y regresar al mapa principal
+  const handleConfirmPaymentReceipt = () => {
+    resetTrip();
+    navigation?.navigate?.('Home');
   };
 
   // Cancelar servicio
@@ -337,6 +342,13 @@ export function ActiveTripScreen({ navigation }) {
           <Text style={styles.cancelButtonText}>Cancelar servicio</Text>
         </TouchableOpacity>
       </View>
+
+      {/* MODAL DE LIQUIDACIÓN Y RECIBO DE VIAJE (Commit 48) */}
+      <TripReceiptModal
+        visible={tripState === TRIP_STATUS.COMPLETED && Boolean(activeTrip)}
+        trip={activeTrip}
+        onConfirmPayment={handleConfirmPaymentReceipt}
+      />
     </SafeAreaView>
   );
 }

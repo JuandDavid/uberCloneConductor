@@ -17,15 +17,18 @@ import { useTrip, TRIP_STATUS } from '../../context/TripContext';
 import { HeaderConductor } from '../../components/HeaderConductor';
 import { IncomingTripModal } from '../../components/IncomingTripModal';
 import { TripReceiptModal } from '../../components/TripReceiptModal';
+import { InteractiveMap } from '../../components/InteractiveMap';
 
 // Importación condicional de react-native-maps para soporte nativo y web
 let MapView = null;
 let Marker = null;
+let UrlTile = null;
 if (Platform.OS !== 'web') {
   try {
     const Maps = require('react-native-maps');
     MapView = Maps.default;
     Marker = Maps.Marker;
+    UrlTile = Maps.UrlTile;
   } catch (err) {
     console.warn('HomeScreen: react-native-maps no disponible en esta plataforma:', err.message);
   }
@@ -33,12 +36,12 @@ if (Platform.OS !== 'web') {
 
 const { width, height } = Dimensions.get('window');
 
-// Coordenadas centrales por defecto (Bogotá, Colombia)
+// Coordenadas centrales por defecto (Medellín, Área Metropolitana del Valle de Aburrá)
 const DEFAULT_COORDS = {
-  latitude: 4.6560,
-  longitude: -74.0595,
-  latitudeDelta: 0.012,
-  longitudeDelta: 0.012,
+  latitude: 6.2442,
+  longitude: -75.5812,
+  latitudeDelta: 0.015,
+  longitudeDelta: 0.015,
 };
 
 /**
@@ -132,7 +135,11 @@ export function HomeScreen({ navigation }) {
   // Recentrar mapa en la ubicación del conductor
   const handleRecenter = () => {
     if (mapRef.current && currentCoords) {
-      mapRef.current.animateToRegion(currentCoords, 600);
+      if (mapRef.current.recenter) {
+        mapRef.current.recenter(currentCoords);
+      } else if (mapRef.current.animateToRegion) {
+        mapRef.current.animateToRegion(currentCoords, 600);
+      }
     }
   };
 
@@ -306,70 +313,16 @@ export function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* MAPA NATIVO O SIMULADOR WEB */}
+      {/* MAPA INTERACTIVO NATIVO Y WEB */}
       <View style={styles.mapContainer}>
-        {Platform.OS !== 'web' && MapView ? (
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={currentCoords}
-            showsUserLocation={locationPermission === 'granted'}
-            showsMyLocationButton={false}
-            showsCompass={false}
-          >
-            {/* Marcador del Vehículo del Conductor */}
-            <Marker
-              coordinate={{
-                latitude: currentCoords.latitude,
-                longitude: currentCoords.longitude,
-              }}
-              title={driver?.fullName || 'Mi Vehículo'}
-              description={`Placa: ${driver?.vehicle?.plate || 'ABC123'} • ${(driver?.vehicle?.category || 'economy').toUpperCase()}`}
-            >
-              <View style={[styles.vehicleMarker, isOnline ? styles.vehicleMarkerOnline : styles.vehicleMarkerOffline]}>
-                <Ionicons name="car" size={22} color={colors.white} />
-                <View style={styles.plateTag}>
-                  <Text style={styles.plateTagText}>{driver?.vehicle?.plate || 'ABC123'}</Text>
-                </View>
-              </View>
-            </Marker>
-
-            {/* Marcadores de Recogida y Destino para Viaje Activo */}
-            {hasActiveTrip && activeTrip?.pickup?.coords && (
-              <Marker
-                coordinate={activeTrip.pickup.coords}
-                title="Punto de Recogida"
-                description={activeTrip.pickup.address}
-                pinColor="#15803D"
-              />
-            )}
-            {hasActiveTrip && activeTrip?.dropoff?.coords && (
-              <Marker
-                coordinate={activeTrip.dropoff.coords}
-                title="Destino Final"
-                description={activeTrip.dropoff.address}
-                pinColor="#DC2626"
-              />
-            )}
-          </MapView>
-        ) : (
-          // Vista de respaldo para Navegador Web
-          <View style={styles.webMapMock}>
-            <View style={styles.webRadarCircle}>
-              <View style={[styles.vehicleMarker, isOnline ? styles.vehicleMarkerOnline : styles.vehicleMarkerOffline]}>
-                <Ionicons name="car" size={26} color={colors.white} />
-                <View style={styles.plateTag}>
-                  <Text style={styles.plateTagText}>{driver?.vehicle?.plate || 'ABC123'}</Text>
-                </View>
-              </View>
-            </View>
-            <Text style={styles.webMapNotice}>
-              {hasActiveTrip
-                ? `📍 Viaje Activo: ${activeTrip?.passenger?.name || 'Pasajero'} • ${getStatusLabel(tripState)}`
-                : `Modo Visualización Web (Expo): GPS Lat: ${currentCoords.latitude.toFixed(4)}, Lng: ${currentCoords.longitude.toFixed(4)}`}
-            </Text>
-          </View>
-        )}
+        <InteractiveMap
+          ref={mapRef}
+          coords={currentCoords}
+          isOnline={isOnline}
+          driver={driver}
+          activeTrip={hasActiveTrip ? activeTrip : null}
+          zoom={16}
+        />
       </View>
 
       {/* CABECERA MODULAR DEL CONDUCTOR (Commit 44) */}
@@ -573,12 +526,12 @@ export function HomeScreen({ navigation }) {
           {isOnline && (
             <TouchableOpacity
               style={styles.demoTriggerButton}
-              onPress={() => simulateIncomingTrip(0)}
+              onPress={() => simulateIncomingTrip()}
               activeOpacity={0.7}
             >
               <Ionicons name="flash" size={15} color="#D97706" />
               <Text style={styles.demoTriggerText}>
-                Simular Solicitud de Viaje Entrante (Sustentación)
+                Simular Solicitud de Viaje Entrante
               </Text>
             </TouchableOpacity>
           )}
@@ -607,13 +560,20 @@ export function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.black,
+    backgroundColor: '#E5E7EB',
   },
   mapContainer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   vehicleMarker: {
     width: 44,

@@ -10,6 +10,7 @@ import {
   TRIPS_COLLECTION,
   DRIVERS_COLLECTION,
 } from '../services/dbService';
+import demoRoutes from '../config/demoRoutes.json';
 
 const TripContext = createContext();
 
@@ -23,43 +24,63 @@ export const TRIP_STATUS = {
   CANCELLED: 'cancelled', // Viaje descartado o cancelado
 };
 
-// Pasajeros y rutas demo para simulación docente en clase
+// Pasajeros y rutas demo en el Área Metropolitana del Valle de Aburrá (Medellín, Envigado, Sabaneta, Laureles, Poblado)
 const DEMO_TRIP_SAMPLES = [
   {
     passengerName: 'Valentina Gómez',
     passengerPhone: '3124567890',
     passengerRating: 4.9,
-    pickupAddress: 'Calle 72 # 10-34, Zona Financiera',
-    pickupCoords: { latitude: 4.6560, longitude: -74.0595 },
-    dropoffAddress: 'Centro Comercial Unicentro, Entrada 3',
-    dropoffCoords: { latitude: 4.7015, longitude: -74.0410 },
-    distanceKm: 6.8,
-    durationMinutes: 18,
+    pickupAddress: 'Parque Lleras, Carrera 37A # 8-43, El Poblado',
+    pickupCoords: { latitude: 6.2088, longitude: -75.5678 },
+    dropoffAddress: 'Centro Comercial Santafé, Carrera 43A # 7 Sur-170, El Poblado',
+    dropoffCoords: { latitude: 6.1970, longitude: -75.5740 },
+    distanceKm: 4.2,
+    durationMinutes: 14,
     paymentMethod: 'Efectivo',
+    routeCoordinates: demoRoutes.trip1 || [],
+    pickupRouteCoordinates: demoRoutes.trip1_toPickup || [],
   },
   {
     passengerName: 'Carlos Andrés Mendoza',
     passengerPhone: '3209876543',
     passengerRating: 4.8,
-    pickupAddress: 'Carrera 7 # 32-16, Centro Internacional',
-    pickupCoords: { latitude: 4.6210, longitude: -74.0680 },
-    dropoffAddress: 'Parque de la 93, Carrera 11A # 93-42',
-    dropoffCoords: { latitude: 4.6765, longitude: -74.0485 },
-    distanceKm: 8.4,
-    durationMinutes: 24,
+    pickupAddress: 'Primer Parque de Laureles, Av. Nutibara # 73-10, Medellín',
+    pickupCoords: { latitude: 6.2443, longitude: -75.5925 },
+    dropoffAddress: 'Centro Comercial Viva Envigado, Carrera 48 # 32B Sur-139, Envigado',
+    dropoffCoords: { latitude: 6.1775, longitude: -75.5912 },
+    distanceKm: 9.6,
+    durationMinutes: 25,
     paymentMethod: 'Mercado Pago',
+    routeCoordinates: demoRoutes.trip2 || [],
+    pickupRouteCoordinates: demoRoutes.trip2_toPickup || [],
   },
   {
     passengerName: 'Mariana Restrepo',
     passengerPhone: '3012349876',
     passengerRating: 5.0,
-    pickupAddress: 'Aeropuerto El Dorado, Salida Nacional',
-    pickupCoords: { latitude: 4.7015, longitude: -74.1469 },
-    dropoffAddress: 'Hotel Tequendama, Carrera 10 # 26-21',
-    dropoffCoords: { latitude: 4.6150, longitude: -74.0720 },
-    distanceKm: 14.2,
-    durationMinutes: 35,
+    pickupAddress: 'Parque Principal de Sabaneta, Calle 70 Sur # 45-20, Sabaneta',
+    pickupCoords: { latitude: 6.1517, longitude: -75.6158 },
+    dropoffAddress: 'Centro Comercial El Tesoro, Carrera 25A # 1A Sur-45, El Poblado',
+    dropoffCoords: { latitude: 6.1983, longitude: -75.5585 },
+    distanceKm: 11.8,
+    durationMinutes: 28,
     paymentMethod: 'Tarjeta de Crédito',
+    routeCoordinates: demoRoutes.trip3 || [],
+    pickupRouteCoordinates: demoRoutes.trip3_toPickup || [],
+  },
+  {
+    passengerName: 'Mateo Álvarez',
+    passengerPhone: '3145678901',
+    passengerRating: 4.9,
+    pickupAddress: 'Estadio Atanasio Girardot, Calle 48 # 73-10, Medellín',
+    pickupCoords: { latitude: 6.2569, longitude: -75.5904 },
+    dropoffAddress: 'Parque de El Poblado, Calle 9 # 43A-31, Medellín',
+    dropoffCoords: { latitude: 6.2105, longitude: -75.5710 },
+    distanceKm: 7.5,
+    durationMinutes: 20,
+    paymentMethod: 'Efectivo',
+    routeCoordinates: demoRoutes.trip4 || [],
+    pickupRouteCoordinates: demoRoutes.trip4_toPickup || [],
   },
 ];
 
@@ -75,6 +96,7 @@ export function TripProvider({ children }) {
   const [activeTrip, setActiveTrip] = useState(null);
   const [dailyEarnings, setDailyEarnings] = useState(0);
   const [completedTripsCount, setCompletedTripsCount] = useState(0);
+  const [demoIndex, setDemoIndex] = useState(0);
 
   // Sincronizar disponibilidad con Firestore en tiempo real
   const setOnlineStatus = useCallback(
@@ -100,14 +122,17 @@ export function TripProvider({ children }) {
     setOnlineStatus(!isOnline);
   }, [isOnline, setOnlineStatus]);
 
-  // Generador de viajes de prueba para sustentación docente
+  // Generador de viajes de prueba
   const simulateIncomingTrip = useCallback(
-    (sampleIndex = 0) => {
+    (sampleIndex) => {
       if (!isOnline) {
         setOnlineStatus(true);
       }
 
-      const sample = DEMO_TRIP_SAMPLES[sampleIndex % DEMO_TRIP_SAMPLES.length];
+      const idx = typeof sampleIndex === 'number' ? sampleIndex : demoIndex;
+      const sample = DEMO_TRIP_SAMPLES[idx % DEMO_TRIP_SAMPLES.length];
+      setDemoIndex((prev) => (prev + 1) % DEMO_TRIP_SAMPLES.length);
+
       const category = driver?.vehicle?.category || 'economy';
       const fareInfo = calculateTripFare(category, sample.distanceKm, sample.durationMinutes);
 
@@ -137,6 +162,9 @@ export function TripProvider({ children }) {
         platformFee: fareInfo.platformFee,
         formattedTotal: fareInfo.formattedTotal,
         formattedEarnings: fareInfo.formattedDriverEarnings,
+        routeCoordinates: sample.routeCoordinates || [],
+        pickupRouteCoordinates: sample.pickupRouteCoordinates || [],
+        driverCoords: { latitude: 6.2442, longitude: -75.5812 },
         status: TRIP_STATUS.REQUESTED,
         createdAt: new Date().toISOString(),
       };

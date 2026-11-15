@@ -184,7 +184,7 @@ export function PendingApprovalScreen({ navigation }) {
               </View>
             )}
             <View style={styles.driverProfileInfo}>
-              <Text style={styles.driverName}>{driver?.fullName || 'Conductor Registrado'}</Text>
+              <Text style={styles.driverName}>{(driver?.fullName || 'Conductor Registrado').replace(/\s*\(fiera\)/gi, '').trim()}</Text>
               <Text style={styles.driverSubtext}>C.C. {driver?.documentId || 'Sin registrar'}</Text>
               <Text style={styles.driverSubtext}>{driver?.email || 'Sin correo registrado'}</Text>
             </View>

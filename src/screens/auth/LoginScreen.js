@@ -131,7 +131,7 @@ export function LoginScreen({ navigation }) {
             >
               <Ionicons name="person-circle" size={24} color={colors.black} />
               <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                <Text style={styles.demoPillName}>Juan Felipe (Fiera)</Text>
+                <Text style={styles.demoPillName}>Juan Felipe</Text>
                 <Text style={styles.demoPillSub}>C.C. 1098765432 • Conductor Demo</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />

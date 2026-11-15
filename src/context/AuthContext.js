@@ -12,11 +12,11 @@ const STORAGE_KEYS = {
 
 // Conductor inicial de prueba para facilitar demostración del flujo
 const DEFAULT_DEMO_DRIVER = {
-  id: 'driver_fiera_01',
-  fullName: 'Juan Felipe (Fiera)',
+  id: 'driver_juan_felipe_01',
+  fullName: 'Juan Felipe',
   documentId: '1098765432',
   phone: '3001234567',
-  email: 'fiera.driver@uberclone.com',
+  email: 'juanfelipe.driver@uberclone.com',
   birthDate: '2000-05-15',
   gender: 'Masculino',
   language: 'es',
@@ -38,9 +38,19 @@ const DEFAULT_DEMO_DRIVER = {
     licenseExpiry: '2028-12-31',
     soatExpiry: '2027-11-20',
     tecnoExpiry: '2027-10-15',
-    mpEmail: 'fiera.driver@mercadopago.com',
+    mpEmail: 'juanfelipe.driver@mercadopago.com',
     termsAccepted: true,
   },
+};
+
+// Limpiar apodos como (Fiera) para cumplir con el nombre oficial del conductor
+const sanitizeDriver = (d) => {
+  if (!d) return null;
+  const cleaned = { ...d };
+  if (cleaned.fullName) {
+    cleaned.fullName = cleaned.fullName.replace(/\s*\(fiera\)/gi, '').trim();
+  }
+  return cleaned;
 };
 
 /**
@@ -62,7 +72,12 @@ export function AuthProvider({ children }) {
         ]);
 
         if (storedSession) {
-          setDriver(JSON.parse(storedSession));
+          const parsed = JSON.parse(storedSession);
+          const sanitized = sanitizeDriver(parsed);
+          setDriver(sanitized);
+          if (parsed?.fullName !== sanitized?.fullName) {
+            AsyncStorage.setItem(STORAGE_KEYS.DRIVER_SESSION, JSON.stringify(sanitized)).catch(() => {});
+          }
         } else {
           setDriver(null);
         }
@@ -82,11 +97,12 @@ export function AuthProvider({ children }) {
 
   // Guardar en AsyncStorage y sincronizar en Firestore (Colección 'drivers')
   const persistDriver = async (updatedDriver) => {
-    setDriver(updatedDriver);
-    if (updatedDriver) {
-      await AsyncStorage.setItem(STORAGE_KEYS.DRIVER_SESSION, JSON.stringify(updatedDriver));
+    const sanitized = sanitizeDriver(updatedDriver);
+    setDriver(sanitized);
+    if (sanitized) {
+      await AsyncStorage.setItem(STORAGE_KEYS.DRIVER_SESSION, JSON.stringify(sanitized));
       // Sincronizar automáticamente en la colección 'drivers' de Firestore en segundo plano
-      saveDriver(updatedDriver).catch((err) => {
+      saveDriver(sanitized).catch((err) => {
         console.warn('AuthContext [persistDriver]: Error al sincronizar con Firestore:', err.message);
       });
     } else {

@@ -197,11 +197,15 @@ export async function saveTrip(tripData) {
 export async function updateTripStatus(tripId, status, additionalData = {}) {
   try {
     const docRef = doc(db, TRIPS_COLLECTION, tripId);
-    await updateDoc(docRef, {
-      status,
-      ...additionalData,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(
+      docRef,
+      {
+        status,
+        ...additionalData,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
   } catch (error) {
     console.warn('dbService [updateTripStatus]:', error.message);
     throw error;

@@ -15,6 +15,11 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDSQmqTMN7HQzL_zPiQD0qziRN5FvNNFJ0"
+        }
       }
     },
     "web": {
@@ -27,6 +32,12 @@
         {
           "photosPermission": "La aplicación requiere acceso a la galería para adjuntar fotos y documentos.",
           "cameraPermission": "La aplicación requiere acceso a la cámara para tomar fotografías de los documentos."
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "googleMapsApiKey": "AIzaSyDSQmqTMN7HQzL_zPiQD0qziRN5FvNNFJ0"
         }
       ]
     ]

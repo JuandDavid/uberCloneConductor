@@ -32,7 +32,7 @@ export function HeaderConductor({
   const rating = driver?.rating ? Number(driver.rating).toFixed(1) : '5.0';
   const plate = driver?.vehicle?.plate || 'ABC123';
   const category = (driver?.vehicle?.category || 'economy').toUpperCase();
-  const driverName = driver?.fullName || 'Conductor';
+  const driverName = (driver?.fullName || 'Conductor').replace(/\s*\(fiera\)/gi, '').trim();
 
   return (
     <View style={styles.container}>

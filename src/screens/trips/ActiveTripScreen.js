@@ -12,16 +12,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../styles/theme';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
+import { useAuth } from '../../context/AuthContext';
 import { TripReceiptModal } from '../../components/TripReceiptModal';
+import { InteractiveMap } from '../../components/InteractiveMap';
 
 // Importación condicional de react-native-maps para soporte móvil y web
 let MapView = null;
 let Marker = null;
+let UrlTile = null;
 if (Platform.OS !== 'web') {
   try {
     const Maps = require('react-native-maps');
     MapView = Maps.default;
     Marker = Maps.Marker;
+    UrlTile = Maps.UrlTile;
   } catch (err) {
     console.warn('ActiveTripScreen: react-native-maps no disponible:', err.message);
   }
@@ -40,6 +44,7 @@ const { width } = Dimensions.get('window');
  * 4. Integración completa de cobro en efectivo y confirmación de llegada.
  */
 export function ActiveTripScreen({ navigation }) {
+  const { driver } = useAuth();
   const {
     tripState,
     activeTrip,
@@ -172,59 +177,15 @@ export function ActiveTripScreen({ navigation }) {
         </View>
       )}
 
-      {/* ÁREA CENTRAL: MAPA O SIMULADOR VISUAL DE RUTA */}
+      {/* ÁREA CENTRAL: MAPA INTERACTIVO CON RUTA EN VIVO */}
       <View style={styles.mapArea}>
-        {Platform.OS !== 'web' && MapView ? (
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: activeTrip.pickup?.coords?.latitude || 4.6560,
-              longitude: activeTrip.pickup?.coords?.longitude || -74.0595,
-              latitudeDelta: 0.02,
-              longitudeDelta: 0.02,
-            }}
-            showsUserLocation={true}
-          >
-            {activeTrip.pickup?.coords && (
-              <Marker
-                coordinate={activeTrip.pickup.coords}
-                title="Punto de Recogida"
-                pinColor="#15803D"
-              />
-            )}
-            {activeTrip.dropoff?.coords && (
-              <Marker
-                coordinate={activeTrip.dropoff.coords}
-                title="Destino Final"
-                pinColor="#DC2626"
-              />
-            )}
-          </MapView>
-        ) : (
-          <View style={styles.webRouteMock}>
-            <View style={styles.routeHeaderMock}>
-              <View style={styles.speedBadge}>
-                <Text style={styles.speedNumber}>48</Text>
-                <Text style={styles.speedUnit}>km/h</Text>
-              </View>
-              <View style={styles.etaBadge}>
-                <Text style={styles.etaTime}>{activeTrip.durationMinutes || 18} min</Text>
-                <Text style={styles.etaDistance}>{activeTrip.distanceKm || 6.8} km restantes</Text>
-              </View>
-            </View>
-
-            <View style={styles.simulatedRoadGraphic}>
-              <View style={styles.roadLine} />
-              <View style={styles.carPulseWrap}>
-                <Ionicons name="navigate" size={32} color="#2563EB" />
-              </View>
-            </View>
-
-            <Text style={styles.webRouteNotice}>
-              Navegación GPS asistida activa hacia: {currentAddress}
-            </Text>
-          </View>
-        )}
+        <InteractiveMap
+          coords={activeTrip.driverCoords || { latitude: 6.2442, longitude: -75.5812 }}
+          isOnline={true}
+          driver={driver}
+          activeTrip={activeTrip}
+          zoom={15}
+        />
       </View>
 
       {/* PANEL INFERIOR: INFORMACIÓN DEL PASAJERO Y ACCIONES OPERATIVAS */}
@@ -419,10 +380,11 @@ const styles = StyleSheet.create({
   },
   mapArea: {
     flex: 1,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#E5E7EB',
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   webRouteMock: {
     flex: 1,

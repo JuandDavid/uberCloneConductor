@@ -17,8 +17,8 @@ Para garantizar un desarrollo ordenado, trazable y equitativo entre ambos integr
 
 ### 1.2. Ramas de Características (`feature/`)
 Cada tarea de desarrollo se realiza en una rama propia que identifica claramente quién es el responsable:
-- **Ramas de Juan Felipe:** `feature/fiera-<nombre-tarea>`  
-  *Ejemplo:* `feature/fiera-input-validation`, `feature/fiera-auth-context`
+- **Ramas de Juan Felipe:** `feature/felipe-<nombre-tarea>`  
+  *Ejemplo:* `feature/felipe-input-validation`, `feature/felipe-auth-context`
 - **Ramas de Juan David:** `feature/juanda-<nombre-tarea>`  
   *Ejemplo:* `feature/juanda-custom-button`, `feature/juanda-firebase-service`
 

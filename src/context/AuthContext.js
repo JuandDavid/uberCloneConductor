@@ -43,12 +43,12 @@ const DEFAULT_DEMO_DRIVER = {
   },
 };
 
-// Limpiar apodos como (Fiera) para cumplir con el nombre oficial del conductor
+// Sanitizar datos del conductor para asegurar consistencia
 const sanitizeDriver = (d) => {
   if (!d) return null;
   const cleaned = { ...d };
   if (cleaned.fullName) {
-    cleaned.fullName = cleaned.fullName.replace(/\s*\(fiera\)/gi, '').trim();
+    cleaned.fullName = cleaned.fullName.trim();
   }
   return cleaned;
 };

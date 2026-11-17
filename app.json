@@ -20,7 +20,16 @@
         "googleMaps": {
           "apiKey": "AIzaSyDSQmqTMN7HQzL_zPiQD0qziRN5FvNNFJ0"
         }
-      }
+      },
+      "package": "com.juandavid.ubercloneconductor",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

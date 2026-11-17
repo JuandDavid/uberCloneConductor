@@ -78,9 +78,9 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 
 ## 👥 5. Flujo de Trabajo Colaborativo (Git)
 El proyecto se desarrolla bajo un esquema colaborativo riguroso y equitativo entre ambos integrantes:
-- **Juan Felipe:** 51 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago, configuración de APK y bitácora AI_LOG.md).
-- **Juan David:** 51 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación completa de rúbrica).
-- **Total:** 102 commits distribuidos con simetría exacta (50% / 50%) mediante ramas de características (`feature/felipe-xxx` y `feature/juanda-xxx`).
+- **Juan Felipe:** 54 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago, configuración y compilación de APK con EAS y bitácora AI_LOG.md).
+- **Juan David:** 54 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación completa de rúbrica).
+- **Total:** 108 commits distribuidos con simetría exacta (50% / 50%) mediante ramas de características (`feature/felipe-xxx` y `feature/juanda-xxx`).
 
 ---
 
@@ -119,8 +119,9 @@ La aplicación cuenta con configuración nativa completa en `app.json` y `eas.js
    ```
 
 3. **Descarga e Instalación:**
-   - EAS Build procesará el empaquetado en los servidores de Expo (aproximadamente 8-12 minutos).
-   - Al finalizar, la terminal mostrará un **código QR y un enlace directo de descarga** para bajar el archivo `.apk` e instalarlo inmediatamente en el celular del evaluador o docente.
+   - EAS Build procesa el empaquetado en los servidores de Expo en la nube.
+   - Enlace directo de descarga del APK generado: [Descargar APK UberClone Conductor](https://expo.dev/accounts/juanfelipemarin11/projects/uberclone-conductor/builds/9272a0be-b5fd-4766-b3f7-2bf7cdc847da)
+   - Al finalizar, la terminal muestra el **código QR y el enlace directo** para bajar el archivo `.apk` e instalarlo inmediatamente en el celular del evaluador o docente.
 
 ---
 

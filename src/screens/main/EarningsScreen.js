@@ -303,15 +303,23 @@ export function EarningsScreen({ navigation }) {
           const paymentMethod = trip.paymentMethod || 'Efectivo';
 
           return (
-            <View key={trip.id} style={styles.tripCard}>
+            <TouchableOpacity
+              key={trip.id}
+              style={styles.tripCard}
+              onPress={() => setSelectedTripDetail(trip)}
+              activeOpacity={0.8}
+            >
               <View style={styles.tripCardHeader}>
                 <View style={styles.tripPassengerWrap}>
                   <Ionicons name="person-circle-outline" size={20} color="#94A3B8" />
                   <Text style={styles.tripPassengerName}>{passengerName}</Text>
                 </View>
-                <Text style={isCompleted ? styles.tripEarnings : styles.tripCancelledText}>
-                  {isCompleted ? `+${earningsFormatted}` : 'Cancelado'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={isCompleted ? styles.tripEarnings : styles.tripCancelledText}>
+                    {isCompleted ? `+${earningsFormatted}` : (isSpanish ? 'Cancelado' : 'Cancelled')}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={16} color="#64748B" />
+                </View>
               </View>
 
               <View style={styles.tripRouteWrap}>
@@ -329,7 +337,7 @@ export function EarningsScreen({ navigation }) {
                   <Text style={styles.paymentBadgeText}>{paymentMethod}</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -408,6 +416,113 @@ export function EarningsScreen({ navigation }) {
               <Ionicons name="send" size={18} color={colors.black} />
               <Text style={styles.confirmWithdrawButtonText}>{isSpanish ? 'Confirmar Transferencia' : 'Confirm Transfer'}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* MODAL INTERACTIVO DE DETALLE DE VIAJE PREVIO */}
+      <Modal
+        visible={Boolean(selectedTripDetail)}
+        transparent={true}
+        animationType="slide"
+        statusBarTranslucent={true}
+        onRequestClose={() => setSelectedTripDetail(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalSheet, { maxHeight: '85%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="receipt-outline" size={22} color="#22C55E" />
+                <Text style={styles.modalTitle}>
+                  {t('trip.tripDetailTitle')}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setSelectedTripDetail(null)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={24} color={colors.white} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedTripDetail && (
+              <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: spacing.sm }}>
+                {/* Resumen de Ganancia */}
+                <View style={styles.detailSummaryBox}>
+                  <Text style={styles.detailSummaryLabel}>{t('trip.driverNet')}</Text>
+                  <Text style={styles.detailSummaryAmount}>
+                    +{selectedTripDetail.formattedEarnings || (selectedTripDetail.driverEarnings ? formatCOP(selectedTripDetail.driverEarnings) : '$ 0')}
+                  </Text>
+                  <Text style={styles.detailDateText}>
+                    {formatDateLabel(selectedTripDetail.createdAt)}
+                  </Text>
+                </View>
+
+                {/* Pasajero y Calificación */}
+                <View style={styles.detailSectionCard}>
+                  <View style={styles.detailPassengerRow}>
+                    <View style={styles.detailAvatar}>
+                      <Ionicons name="person" size={20} color={colors.white} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.detailPassengerName}>
+                        {selectedTripDetail.passenger?.name || 'Pasajero'}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                        <Ionicons name="star" size={13} color="#EAB308" />
+                        <Text style={styles.detailRatingText}>
+                          {selectedTripDetail.passenger?.rating ? Number(selectedTripDetail.passenger.rating).toFixed(1) : '5.0'} ★ • {selectedTripDetail.paymentMethod || 'Efectivo'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Ruta del Viaje */}
+                <View style={styles.detailSectionCard}>
+                  <Text style={styles.detailSectionTitle}>{isSpanish ? 'RUTA REALIZADA' : 'TRIP ROUTE'}</Text>
+                  <View style={styles.tripRouteWrap}>
+                    <View style={styles.tripRouteDot} />
+                    <Text style={styles.detailAddressText}>{selectedTripDetail.pickup?.address || 'Origen'}</Text>
+                  </View>
+                  <View style={styles.tripRouteWrap}>
+                    <View style={styles.tripRouteSquare} />
+                    <Text style={styles.detailAddressText}>{selectedTripDetail.dropoff?.address || 'Destino'}</Text>
+                  </View>
+                </View>
+
+                {/* Desglose Financiero */}
+                <View style={styles.detailSectionCard}>
+                  <Text style={styles.detailSectionTitle}>{isSpanish ? 'DESGLOSE DE LIQUIDACIÓN' : 'FARE BREAKDOWN'}</Text>
+                  <View style={styles.detailBreakdownRow}>
+                    <Text style={styles.detailBreakdownLabel}>{isSpanish ? 'Total facturado' : 'Total billed'}</Text>
+                    <Text style={styles.detailBreakdownValueBold}>
+                      {selectedTripDetail.formattedTotal || (selectedTripDetail.totalFare ? formatCOP(selectedTripDetail.totalFare) : '$ 0')}
+                    </Text>
+                  </View>
+                  <View style={styles.detailBreakdownRow}>
+                    <Text style={styles.detailBreakdownLabel}>{isSpanish ? 'Comisión de plataforma (15%)' : 'Platform fee (15%)'}</Text>
+                    <Text style={[styles.detailBreakdownValue, { color: '#EF4444' }]}>
+                      -{formatCOP((selectedTripDetail.totalFare || 0) * 0.15)}
+                    </Text>
+                  </View>
+                  <View style={[styles.detailBreakdownRow, { borderTopWidth: 1, borderColor: '#334155', paddingTop: 8, marginTop: 6 }]}>
+                    <Text style={styles.detailBreakdownLabelBold}>{t('trip.driverNet')}</Text>
+                    <Text style={styles.detailBreakdownValueHighlight}>
+                      +{selectedTripDetail.formattedEarnings || (selectedTripDetail.driverEarnings ? formatCOP(selectedTripDetail.driverEarnings) : '$ 0')}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Botón de Cerrar */}
+                <TouchableOpacity
+                  style={styles.closeDetailButton}
+                  onPress={() => setSelectedTripDetail(null)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.closeDetailButtonText}>{t('common.close')}</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
@@ -782,6 +897,116 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#374151',
   },
+  detailSummaryBox: {
+    backgroundColor: '#0F172A',
+    borderRadius: 14,
+    padding: spacing.md,
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+  },
+  detailSummaryLabel: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  detailSummaryAmount: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#22C55E',
+  },
+  detailDateText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  detailSectionCard: {
+    backgroundColor: '#0F172A',
+    borderRadius: 14,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+  },
+  detailPassengerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  detailAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailPassengerName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  detailRatingText: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  detailSectionTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#94A3B8',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
+  detailAddressText: {
+    fontSize: 13,
+    color: '#E2E8F0',
+    flex: 1,
+  },
+  detailBreakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  detailBreakdownLabel: {
+    fontSize: 13,
+    color: '#94A3B8',
+  },
+  detailBreakdownValue: {
+    fontSize: 13,
+    color: '#E2E8F0',
+    fontWeight: '600',
+  },
+  detailBreakdownLabelBold: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.white,
+  },
+  detailBreakdownValueBold: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.white,
+  },
+  detailBreakdownValueHighlight: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#22C55E',
+  },
+  closeDetailButton: {
+    backgroundColor: '#1E293B',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  closeDetailButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.white,
+  },
+});
   currencyPrefix: {
     fontSize: 18,
     fontWeight: '800',

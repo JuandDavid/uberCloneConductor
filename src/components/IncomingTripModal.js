@@ -21,7 +21,7 @@ const DEFAULT_TIMEOUT = 15; // 15 segundos para aceptar o rechazar
  * Modal de Solicitud de Viaje Entrante (IncomingTripModal)
  * Despliega la tarjeta interactiva de solicitud de viaje con cuenta regresiva.
  * 
- * Reglas académicas (Docente Paula Andrea Muñoz Correa):
+ * Criterios técnicos de implementación:
  * 1. Cero popups de Alert.alert(); las acciones de aceptar y rechazar son fluidas y visuales.
  * 2. Visualización clara de la ruta: origen, destino, distancia y tiempo estimado.
  * 3. Transparencia financiera: muestra el valor estimado de ganancia para el conductor y la forma de pago.
@@ -34,6 +34,7 @@ export function IncomingTripModal({
   onDecline,
   timeoutSeconds = DEFAULT_TIMEOUT,
 }) {
+  const { t, isSpanish } = useTranslation();
   const [secondsLeft, setSecondsLeft] = useState(timeoutSeconds);
   const progressAnim = useRef(new Animated.Value(1)).current;
 

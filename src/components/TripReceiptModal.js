@@ -21,7 +21,7 @@ const QUICK_TAGS = ['Muy puntual', 'Amable y educado', 'Ruta clara', 'Excelente 
  * Modal de Liquidación de Tarifa y Recibo de Viaje (TripReceiptModal)
  * Despliega el resumen financiero de cobro, desglose de comisión y calificación del usuario.
  * 
- * Reglas académicas (Docente Paula Andrea Muñoz Correa):
+ * Criterios técnicos de implementación:
  * 1. Desglose transparente: Tarifa base, distancia, tiempo, comisión Uber y ganancia neta.
  * 2. Cero alertas nativas (Alert.alert()); la experiencia de cobro es fluida en pantalla.
  * 3. Selector interactivo de calificación para el pasajero (1 a 5 estrellas).
@@ -32,6 +32,7 @@ export function TripReceiptModal({
   trip = null,
   onConfirmPayment,
 }) {
+  const { t, isSpanish } = useTranslation();
   const [passengerRating, setPassengerRating] = useState(5);
   const [selectedTags, setSelectedTags] = useState(['Muy puntual']);
   const [showMpModal, setShowMpModal] = useState(false);

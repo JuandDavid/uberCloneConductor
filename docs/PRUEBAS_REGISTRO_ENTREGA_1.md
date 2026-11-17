@@ -3,7 +3,7 @@
 **Materia:** Programación Móvil  
 **Docente:** Paula Andrea Muñoz Correa  
 **Fecha de Prueba:** 3 de Noviembre  
-**Responsables de Validación:** Juan Felipe (Fiera) y Juan David (Juanda)  
+**Responsables de Validación:** Juan Felipe y Juan David  
 **Entorno de Ejecución:** Dispositivo Móvil Android (Expo Go) • React Native 0.86.3 • Expo SDK 57 • Firebase Firestore Web  
 
 ---

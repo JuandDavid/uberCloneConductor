@@ -1,6 +1,6 @@
 # Informe de Verificación de Ejecución — Expo SDK 57
 ## Proyecto: UberClone Conductor — Entrega 1
-**Responsable de la Prueba:** Juan Felipe (Fiera)  
+**Responsable de la Prueba:** Juan Felipe  
 **Fecha de Verificación:** 29 de Octubre  
 **Entorno de Ejecución:** React Native 0.86.3 | Expo SDK 57 (~57.0.31) | Node.js v22  
 

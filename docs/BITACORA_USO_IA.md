@@ -4,8 +4,8 @@
 **Docente:** Paula Andrea Muñoz Correa  
 **Semestre:** 5.° Semestre de Ingeniería de Software  
 **Integrantes del Equipo:**
-- Juan Felipe ("Fiera") — `juan.felipe@universidad.edu.co`
-- Juan David ("Juanda") — `juan.david@universidad.edu.co`
+- Juan Felipe — `juan.felipe@universidad.edu.co`
+- Juan David — `juan.david@universidad.edu.co`
 
 ---
 

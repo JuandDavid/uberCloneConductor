@@ -77,13 +77,14 @@ const FALLBACK_TRIPS = [
  * Pantalla de Ganancias, Historial de Viajes y Retiro de Balance (EarningsScreen)
  * Centro financiero del conductor para la Entrega 2.
  * 
- * Reglas académicas (Docente Paula Andrea Muñoz Correa):
+ * Criterios técnicos de implementación:
  * 1. Arquitectura desacoplada: consume de dbService, AuthContext y TripContext.
  * 2. Cero popups de Alert.alert(); toda validación y feedback es inline.
  * 3. Formateo estricto en pesos colombianos (COP).
  * 4. Historial real conectado a la colección 'trips' de Firestore.
  */
 export function EarningsScreen({ navigation }) {
+  const { t, isSpanish } = useTranslation();
   const { driver, updateDriverBalance } = useAuth();
   const {
     dailyEarnings,

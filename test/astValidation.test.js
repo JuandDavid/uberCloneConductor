@@ -55,3 +55,28 @@ test('Análisis Sintáctico AST: todos los archivos en src/ deben compilar con 0
 
   assert.deepEqual(errors, [], `Se encontraron errores de sintaxis en: ${JSON.stringify(errors, null, 2)}`);
 });
+
+test('Validación i18n en AST: ningún archivo debe invocar t(...) sin declarar useTranslation', () => {
+  const srcDir = path.join(rootDir, 'src');
+  const allFiles = getJsFiles(srcDir);
+  const unboundFiles = [];
+
+  for (const file of allFiles) {
+    if (file.endsWith('useTranslation.js')) continue;
+    const code = fs.readFileSync(file, 'utf8');
+    if (/\bt\s*\(/.test(code)) {
+      const hasImport = /useTranslation/.test(code);
+      const hasDestructure = /const\s*\{[^}]*\bt\b[^}]*\}\s*=\s*useTranslation/.test(code) ||
+                             /let\s*\{[^}]*\bt\b[^}]*\}\s*=\s*useTranslation/.test(code);
+      if (!hasImport || !hasDestructure) {
+        unboundFiles.push(path.relative(rootDir, file));
+      }
+    }
+  }
+
+  assert.deepEqual(
+    unboundFiles,
+    [],
+    `Se encontraron archivos que usan t(...) sin desestructurar useTranslation: ${JSON.stringify(unboundFiles, null, 2)}`
+  );
+});

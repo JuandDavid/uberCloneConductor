@@ -37,7 +37,7 @@ export function ProfileScreen({ navigation }) {
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState(null);
 
-  const driverName = (driver?.fullName || 'Conductor').replace(/\s*\(fiera\)/gi, '').trim();
+  const driverName = (driver?.fullName || 'Conductor').trim();
   const driverEmail = driver?.email || 'conductor@uberclone.com';
   const driverPhone = driver?.phone || '3001234567';
   const documentId = driver?.documentId || '1098765432';

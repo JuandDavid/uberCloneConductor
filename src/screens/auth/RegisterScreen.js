@@ -557,7 +557,7 @@ export function RegisterScreen({ navigation }) {
                   : 'Tus datos han sido registrados correctamente y tu cuenta se encuentra en revisión.'}
               </Text>
 
-              {/* Badge de estado en tiempo real (Docente Paula Andrea) */}
+              {/* Badge de estado en tiempo real */}
               <View
                 style={[
                   styles.statusBadge,

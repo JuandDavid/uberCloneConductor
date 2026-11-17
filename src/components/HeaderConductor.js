@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../styles/theme';
+import { useTranslation } from '../i18n/useTranslation';
 
 /**
  * Componente Cabecera del Conductor (HeaderConductor)
@@ -28,6 +29,7 @@ export function HeaderConductor({
   onProfilePress,
 }) {
   const [hideEarnings, setHideEarnings] = useState(false);
+  const { t, isSpanish } = useTranslation();
 
   const rating = driver?.rating ? Number(driver.rating).toFixed(1) : '5.0';
   const plate = driver?.vehicle?.plate || 'ABC123';
@@ -71,7 +73,7 @@ export function HeaderConductor({
         <View style={[styles.statusPill, isOnline ? styles.statusPillOnline : styles.statusPillOffline]}>
           <View style={[styles.statusDot, isOnline ? styles.statusDotOnline : styles.statusDotOffline]} />
           <Text style={[styles.statusPillText, isOnline ? styles.statusPillTextOnline : styles.statusPillTextOffline]}>
-            {isOnline ? 'ONLINE' : 'OFFLINE'}
+            {isOnline ? t('header.online') : t('header.offline')}
           </Text>
         </View>
       </View>
@@ -83,7 +85,7 @@ export function HeaderConductor({
         {/* Bloque Financiero con Modo Privacidad */}
         <View style={styles.earningsBlock}>
           <View style={styles.earningsLabelRow}>
-            <Text style={styles.earningsLabel}>Ganancias de Hoy</Text>
+            <Text style={styles.earningsLabel}>{t('header.todayEarnings')}</Text>
             <TouchableOpacity
               onPress={() => setHideEarnings(!hideEarnings)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -110,7 +112,7 @@ export function HeaderConductor({
           <View style={styles.tripsCountBadge}>
             <Ionicons name="navigate-outline" size={12} color={colors.textSecondary} />
             <Text style={styles.tripsCountText}>
-              {completedTripsCount} {completedTripsCount === 1 ? 'viaje' : 'viajes'}
+              {completedTripsCount} {completedTripsCount === 1 ? (isSpanish ? 'viaje' : 'trip') : (isSpanish ? 'viajes' : 'trips')}
             </Text>
           </View>
         </View>

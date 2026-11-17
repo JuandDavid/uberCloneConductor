@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { colors, spacing } from '../../styles/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
 import { HeaderConductor } from '../../components/HeaderConductor';
 import { IncomingTripModal } from '../../components/IncomingTripModal';
@@ -384,7 +385,7 @@ export function HomeScreen({ navigation }) {
             ) : isOnline ? (
               <View style={styles.goButtonContent}>
                 <Ionicons name="power" size={26} color={colors.white} />
-                <Text style={styles.goButtonLabelOnline}>DESCONECTAR</Text>
+                <Text style={styles.goButtonLabelOnline}>{t('home.goOffline')}</Text>
               </View>
             ) : (
               <View style={styles.goButtonContent}>
@@ -517,7 +518,7 @@ export function HomeScreen({ navigation }) {
             <View style={styles.radarNoticeRow}>
               <View style={styles.radarPulseDot} />
               <Text style={styles.radarNoticeText}>
-                Buscando solicitudes de viaje en tu zona de cobertura...
+                {t('home.waitingForTrips')}
               </Text>
             </View>
           )}

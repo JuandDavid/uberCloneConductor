@@ -78,9 +78,9 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 
 ## 👥 5. Flujo de Trabajo Colaborativo (Git)
 El proyecto se desarrolla bajo un esquema colaborativo riguroso y equitativo entre ambos integrantes:
-- **Juan Felipe ("Fiera"):** 36 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP).
-- **Juan David ("Juanda"):** 35 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico y soporte multilingüe en autenticación).
-- **Total:** 71 commits distribuidos simétricamente mediante ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`).
+- **Juan Felipe ("Fiera"):** 40 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago y configuración de compilación de APK).
+- **Juan David ("Juanda"):** 40 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación de empaquetado).
+- **Total:** 80 commits distribuidos simétricamente (50% / 50%) mediante ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`).
 
 ---
 
@@ -95,3 +95,29 @@ El proyecto se desarrolla bajo un esquema colaborativo riguroso y equitativo ent
 - Ordenamiento cronológico descendente en `EarningsScreen` para priorizar las carreras más recientes.
 - Modal interactivo con desglose de liquidación (tarifa base, distancia, comisión de plataforma y ganancia neta).
 - Pruebas unitarias automatizadas con el test runner nativo de Node.js (`node --test`).
+
+---
+
+## 📱 7. Compilación y Generación del APK Instalable (Android)
+
+La aplicación cuenta con configuración nativa completa en `app.json` y `eas.json` para compilar un archivo binario **.apk** instalable en cualquier dispositivo Android físico sin requerir Expo Go ni cables:
+
+### Requisitos Previos
+1. Contar con una cuenta gratuita en [Expo.dev](https://expo.dev).
+2. Tener instalado Node.js en el equipo.
+
+### Pasos de Compilación con EAS Build:
+
+1. **Iniciar sesión en la cuenta de Expo:**
+   ```bash
+   npx eas-cli@latest login
+   ```
+
+2. **Ejecutar la compilación del APK en la nube:**
+   ```bash
+   npx eas-cli@latest build -p android --profile preview
+   ```
+
+3. **Descarga e Instalación:**
+   - EAS Build procesará el empaquetado en los servidores de Expo (aproximadamente 8-12 minutos).
+   - Al finalizar, la terminal mostrará un **código QR y un enlace directo de descarga** para bajar el archivo `.apk` e instalarlo inmediatamente en el celular del evaluador o docente.

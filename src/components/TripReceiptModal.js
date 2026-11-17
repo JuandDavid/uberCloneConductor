@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../styles/theme';
+import { useTranslation } from '../i18n/useTranslation';
 import { formatCOP } from '../config/pricing';
 
 const QUICK_TAGS = ['Muy puntual', 'Amable y educado', 'Ruta clara', 'Excelente usuario'];
@@ -70,7 +71,7 @@ export function TripReceiptModal({
               <View style={styles.checkCircle}>
                 <Ionicons name="checkmark-circle" size={48} color="#16A34A" />
               </View>
-              <Text style={styles.title}>¡Viaje Finalizado!</Text>
+              <Text style={styles.title}>{t('trip.tripCompleted')}</Text>
               <Text style={styles.subtitle}>
                 Has completado la ruta con {passengerName}.
               </Text>
@@ -85,7 +86,7 @@ export function TripReceiptModal({
                   color={isCash ? '#15803D' : '#1D4ED8'}
                 />
                 <Text style={[styles.paymentMethodLabel, isCash ? styles.labelCash : styles.labelDigital]}>
-                  {isCash ? 'COBRO EN EFECTIVO' : 'PAGO DIGITAL EN LÍNEA'}
+                  {isCash ? (isSpanish ? 'COBRO EN EFECTIVO' : 'CASH PAYMENT') : (isSpanish ? 'PAGO DIGITAL EN LÍNEA' : 'DIGITAL PAYMENT')}
                 </Text>
               </View>
 
@@ -100,7 +101,7 @@ export function TripReceiptModal({
             {/* CAJA DE GANANCIA NETA DEL CONDUCTOR */}
             <View style={styles.earningsSummaryBox}>
               <View style={styles.earningsRow}>
-                <Text style={styles.earningsLabel}>Tu Ganancia Acreditada</Text>
+                <Text style={styles.earningsLabel}>{t('trip.driverNet')}</Text>
                 <Text style={styles.earningsHighlight}>+{driverEarnings}</Text>
               </View>
               <Text style={styles.earningsSubtext}>
@@ -110,7 +111,7 @@ export function TripReceiptModal({
 
             {/* DESGLOSE DETALLADO DE LIQUIDACIÓN */}
             <View style={styles.breakdownCard}>
-              <Text style={styles.breakdownTitle}>DESGLOSE DE TARIFA</Text>
+              <Text style={styles.breakdownTitle}>{isSpanish ? 'DESGLOSE DE TARIFA' : 'FARE BREAKDOWN'}</Text>
 
               <View style={styles.breakdownItem}>
                 <Text style={styles.breakdownItemLabel}>Distancia recorrida ({distanceKm})</Text>
@@ -123,21 +124,21 @@ export function TripReceiptModal({
               </View>
 
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownItemLabel}>Total facturado al pasajero</Text>
+                <Text style={styles.breakdownItemLabel}>{isSpanish ? 'Total facturado al pasajero' : 'Total charged to rider'}</Text>
                 <Text style={styles.breakdownItemValueBold}>{totalFare}</Text>
               </View>
 
               <View style={styles.breakdownDivider} />
 
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownFeeLabel}>Comisión de la plataforma (15%)</Text>
+                <Text style={styles.breakdownFeeLabel}>{isSpanish ? 'Comisión de plataforma (15%)' : 'Platform fee (15%)'}</Text>
                 <Text style={styles.breakdownFeeValue}>-{platformFee}</Text>
               </View>
             </View>
 
             {/* CALIFICACIÓN DEL PASAJERO */}
             <View style={styles.ratingCard}>
-              <Text style={styles.ratingTitle}>¿Cómo estuvo tu experiencia con {passengerName}?</Text>
+              <Text style={styles.ratingTitle}>{isSpanish ? `¿Cómo estuvo tu experiencia con ${passengerName}?` : `How was your experience with ${passengerName}?`}</Text>
               
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -184,7 +185,7 @@ export function TripReceiptModal({
             >
               <Ionicons name="checkmark-done" size={22} color={colors.white} />
               <Text style={styles.confirmButtonText}>
-                {isCash ? 'CONFIRMAR PAGO RECIBIDO' : 'CONTINUAR'}
+                {isCash ? t('trip.confirmPaymentBtn') : (isSpanish ? 'CONTINUAR' : 'CONTINUE')}
               </Text>
             </TouchableOpacity>
           </ScrollView>

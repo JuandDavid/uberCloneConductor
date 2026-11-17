@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../styles/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /**
  * Pantalla de Perfil del Conductor (ProfileScreen)
@@ -86,7 +87,7 @@ export function ProfileScreen({ navigation }) {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* CABECERA */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => navigation?.navigate?.('PendingApproval')}
@@ -124,16 +125,16 @@ export function ProfileScreen({ navigation }) {
             <View style={styles.statusBadgeRow}>
               <View style={[styles.statusBadge, isApproved ? styles.badgeApproved : styles.badgePending]}>
                 <Text style={[styles.statusBadgeText, isApproved ? styles.textApproved : styles.textPending]}>
-                  {isApproved ? 'CONDUCTOR APROBADO' : 'EN REVISIÓN'}
+                  {isApproved ? (language === 'es' ? 'CONDUCTOR APROBADO' : 'APPROVED DRIVER') : (language === 'es' ? 'EN REVISIÓN' : 'UNDER REVIEW')}
                 </Text>
               </View>
-              <Text style={styles.ratingBadge}>⭐ 5.0 (Excelente)</Text>
+              <Text style={styles.ratingBadge}>⭐ 5.0 ({language === 'es' ? 'Excelente' : 'Excellent'})</Text>
             </View>
           </View>
         </View>
 
         {/* TARJETA DE VEHÍCULO */}
-        <Text style={styles.sectionTitle}>VEHÍCULO ASIGNADO</Text>
+        <Text style={styles.sectionTitle}>{language === 'es' ? 'VEHÍCULO ASIGNADO' : 'ASSIGNED VEHICLE'}</Text>
         <View style={styles.vehicleCard}>
           <View style={styles.vehicleHeaderRow}>
             <View style={styles.vehicleIconBox}>
@@ -141,7 +142,7 @@ export function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.vehicleInfo}>
               <Text style={styles.vehicleTitle}>{vehicleName}</Text>
-              <Text style={styles.vehicleSubinfo}>Color: {vehicleColor} • Capacidad: {capacity} personas</Text>
+              <Text style={styles.vehicleSubinfo}>{language === 'es' ? 'Color' : 'Color'}: {vehicleColor} • {language === 'es' ? 'Capacidad' : 'Capacity'}: {capacity} {language === 'es' ? 'personas' : 'passengers'}</Text>
             </View>
             <View style={styles.plateTag}>
               <Text style={styles.plateTagText}>{vehiclePlate}</Text>
@@ -152,31 +153,31 @@ export function ProfileScreen({ navigation }) {
 
           <View style={styles.vehicleMetaRow}>
             <View style={styles.vehicleMetaItem}>
-              <Text style={styles.metaLabel}>Categoría</Text>
+              <Text style={styles.metaLabel}>{t('profile.category')}</Text>
               <Text style={styles.metaValue}>{category}</Text>
             </View>
             <View style={styles.vehicleMetaItem}>
-              <Text style={styles.metaLabel}>Tarifa Base</Text>
+              <Text style={styles.metaLabel}>{language === 'es' ? 'Tarifa Base' : 'Base Fare'}</Text>
               <Text style={styles.metaValue}>$ 4.500 COP</Text>
             </View>
             <View style={styles.vehicleMetaItem}>
-              <Text style={styles.metaLabel}>Por Km</Text>
+              <Text style={styles.metaLabel}>{language === 'es' ? 'Por Km' : 'Per Km'}</Text>
               <Text style={styles.metaValue}>$ 1.200 COP</Text>
             </View>
           </View>
         </View>
 
         {/* DOCUMENTOS Y VIGENCIAS LEGALES */}
-        <Text style={styles.sectionTitle}>DOCUMENTOS Y VIGENCIAS</Text>
+        <Text style={styles.sectionTitle}>{language === 'es' ? 'DOCUMENTOS Y VIGENCIAS' : 'DOCUMENTS & VALIDITY'}</Text>
         <View style={styles.documentsCard}>
           <View style={styles.docRow}>
             <Ionicons name="card-outline" size={18} color="#60A5FA" />
             <View style={styles.docInfo}>
-              <Text style={styles.docTitle}>Licencia de Conducción ({licenseNum})</Text>
-              <Text style={styles.docExpiry}>Vence: {licenseExp}</Text>
+              <Text style={styles.docTitle}>{language === 'es' ? 'Licencia de Conducción' : 'Driver License'} ({licenseNum})</Text>
+              <Text style={styles.docExpiry}>{language === 'es' ? 'Vence: ' : 'Expires: '}{licenseExp}</Text>
             </View>
             <View style={styles.validBadge}>
-              <Text style={styles.validBadgeText}>Vigente</Text>
+              <Text style={styles.validBadgeText}>{language === 'es' ? 'Vigente' : 'Valid'}</Text>
             </View>
           </View>
 
@@ -185,11 +186,11 @@ export function ProfileScreen({ navigation }) {
           <View style={styles.docRow}>
             <Ionicons name="shield-checkmark-outline" size={18} color="#4ADE80" />
             <View style={styles.docInfo}>
-              <Text style={styles.docTitle}>Póliza SOAT Obligatoria</Text>
-              <Text style={styles.docExpiry}>Vence: {soatExp}</Text>
+              <Text style={styles.docTitle}>{language === 'es' ? 'Póliza SOAT Obligatoria' : 'Mandatory SOAT Policy'}</Text>
+              <Text style={styles.docExpiry}>{language === 'es' ? 'Vence: ' : 'Expires: '}{soatExp}</Text>
             </View>
             <View style={styles.validBadge}>
-              <Text style={styles.validBadgeText}>Vigente</Text>
+              <Text style={styles.validBadgeText}>{language === 'es' ? 'Vigente' : 'Valid'}</Text>
             </View>
           </View>
 
@@ -198,11 +199,11 @@ export function ProfileScreen({ navigation }) {
           <View style={styles.docRow}>
             <Ionicons name="construct-outline" size={18} color="#FBBF24" />
             <View style={styles.docInfo}>
-              <Text style={styles.docTitle}>Revisión Técnico-Mecánica</Text>
-              <Text style={styles.docExpiry}>Vence: {tecnoExp}</Text>
+              <Text style={styles.docTitle}>{language === 'es' ? 'Revisión Técnico-Mecánica' : 'Technical Inspection'}</Text>
+              <Text style={styles.docExpiry}>{language === 'es' ? 'Vence: ' : 'Expires: '}{tecnoExp}</Text>
             </View>
             <View style={styles.validBadge}>
-              <Text style={styles.validBadgeText}>Vigente</Text>
+              <Text style={styles.validBadgeText}>{language === 'es' ? 'Vigente' : 'Valid'}</Text>
             </View>
           </View>
 
@@ -211,22 +212,22 @@ export function ProfileScreen({ navigation }) {
           <View style={styles.docRow}>
             <Ionicons name="wallet-outline" size={18} color="#C084FC" />
             <View style={styles.docInfo}>
-              <Text style={styles.docTitle}>Dispersión de Pagos</Text>
+              <Text style={styles.docTitle}>{language === 'es' ? 'Dispersión de Pagos' : 'Payout Method'}</Text>
               <Text style={styles.docExpiry}>{mpEmail}</Text>
             </View>
             <View style={styles.validBadge}>
-              <Text style={styles.validBadgeText}>Vinculada</Text>
+              <Text style={styles.validBadgeText}>{language === 'es' ? 'Vinculada' : 'Linked'}</Text>
             </View>
           </View>
         </View>
 
         {/* PREFERENCIAS DE LA APP */}
-        <Text style={styles.sectionTitle}>PREFERENCIAS</Text>
+        <Text style={styles.sectionTitle}>{language === 'es' ? 'PREFERENCIAS' : 'PREFERENCES'}</Text>
         <View style={styles.preferencesCard}>
           <View style={styles.prefRow}>
             <View style={styles.prefTextWrap}>
-              <Text style={styles.prefTitle}>Idioma de la Interfaz</Text>
-              <Text style={styles.prefSubtitle}>Selecciona el idioma del panel</Text>
+              <Text style={styles.prefTitle}>{t('profile.appLanguage')}</Text>
+              <Text style={styles.prefSubtitle}>{language === 'es' ? 'Selecciona el idioma del panel' : 'Select app interface language'}</Text>
             </View>
             <View style={styles.languageToggle}>
               <TouchableOpacity

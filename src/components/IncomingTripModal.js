@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../styles/theme';
+import { useTranslation } from '../i18n/useTranslation';
 import { formatCOP } from '../config/pricing';
 
 const { width } = Dimensions.get('window');
@@ -122,7 +123,7 @@ export function IncomingTripModal({
           {/* TARJETA FINANCIERA DESTACADA */}
           <View style={styles.earningsCard}>
             <View style={styles.earningsTextWrap}>
-              <Text style={styles.earningsLabel}>Tu ganancia estimada</Text>
+              <Text style={styles.earningsLabel}>{t('trip.estimatedFare')}</Text>
               <Text style={styles.earningsValue}>{driverEarnings}</Text>
             </View>
             <View style={styles.fareMetaWrap}>
@@ -134,7 +135,7 @@ export function IncomingTripModal({
                 />
                 <Text style={styles.paymentMethodText}>{paymentMethod}</Text>
               </View>
-              <Text style={styles.totalFareSubtext}>Total cliente: {totalFare}</Text>
+              <Text style={styles.totalFareSubtext}>{isSpanish ? 'Total cliente: ' : 'Rider total: '}{totalFare}</Text>
             </View>
           </View>
 
@@ -151,7 +152,7 @@ export function IncomingTripModal({
                 <Ionicons name="star" size={13} color="#EAB308" />
                 <Text style={styles.ratingText}>{passengerRating}</Text>
                 <Text style={styles.verifiedDot}>•</Text>
-                <Text style={styles.passengerMetaSub}>Usuario verificado</Text>
+                <Text style={styles.passengerMetaSub}>{isSpanish ? 'Usuario verificado' : 'Verified rider'}</Text>
               </View>
             </View>
             <View style={styles.distanceBadge}>
@@ -171,7 +172,7 @@ export function IncomingTripModal({
                 <View style={styles.routeDashedLine} />
               </View>
               <View style={styles.routeTextColumn}>
-                <Text style={styles.routeStepLabel}>PUNTO DE RECOGIDA</Text>
+                <Text style={styles.routeStepLabel}>{t('trip.pickup')}</Text>
                 <Text style={styles.routeAddress} numberOfLines={2}>
                   {pickupAddress}
                 </Text>
@@ -184,7 +185,7 @@ export function IncomingTripModal({
                 <View style={styles.dropoffSquare} />
               </View>
               <View style={styles.routeTextColumn}>
-                <Text style={styles.routeStepLabel}>DESTINO FINAL</Text>
+                <Text style={styles.routeStepLabel}>{t('trip.destination')}</Text>
                 <Text style={styles.routeAddress} numberOfLines={2}>
                   {dropoffAddress}
                 </Text>
@@ -200,7 +201,7 @@ export function IncomingTripModal({
               activeOpacity={0.85}
             >
               <Ionicons name="checkmark-circle" size={24} color={colors.white} />
-              <Text style={styles.acceptButtonText}>ACEPTAR VIAJE</Text>
+              <Text style={styles.acceptButtonText}>{t('trip.acceptTrip')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -209,7 +210,7 @@ export function IncomingTripModal({
               activeOpacity={0.7}
             >
               <Ionicons name="close-circle-outline" size={18} color="#6B7280" />
-              <Text style={styles.declineButtonText}>Rechazar solicitud</Text>
+              <Text style={styles.declineButtonText}>{t('trip.declineTrip')}</Text>
             </TouchableOpacity>
           </View>
         </View>

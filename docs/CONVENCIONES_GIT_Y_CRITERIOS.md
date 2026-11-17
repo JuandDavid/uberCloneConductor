@@ -2,7 +2,7 @@
 ## Proyecto: UberClone Conductor — Entrega 1 (5 de Noviembre)
 **Materia:** Programación Móvil  
 **Docente:** Paula Andrea Muñoz Correa  
-**Integrantes:** Juan Felipe (Fiera) y Juan David (Juanda)  
+**Integrantes:** Juan Felipe y Juan David  
 
 ---
 

@@ -1,6 +1,6 @@
 # PROYECTO: UBERCLONE CONDUCTOR (UNIVERSIDAD)
 ## Entrega 2: Ciclo Completo del Servicio de Transporte | Materia: Programación Móvil
-**Integrantes:** Juan David (Juanda) y Juan Felipe (Fiera)  
+**Integrantes:** Juan David y Juan Felipe  
 **Docente:** Paula Andrea Muñoz Correa  
 **Tecnologías:** React Native con Expo (SDK 57) • Firebase Firestore Web SDK (`</>`) • React Navigation v7  
 **Repositorio Oficial del Proyecto:** https://github.com/JuandDavid/uberCloneConductor.git  
@@ -24,11 +24,11 @@
 
 ---
 
-## 2. BALANCE OFICIAL DE COMMITS (26 FIERA / 26 JUANDA = 52 COMMITS TOTALES)
+## 2. BALANCE OFICIAL DE COMMITS (26 Juan Felipe / 26 Juan David = 52 COMMITS TOTALES)
 
 Al finalizar la Entrega 2, el repositorio alcanza un balance perfecto del **50% / 50%**:
-- **Juan Felipe (Fiera):** 26 commits (Commits 1 al 20 de Entrega 1 + Commits 21 al 26 de inicio de Entrega 2).
-- **Juan David (Juanda):** 26 commits (Commits de Entrega 1 + Commits 37 al 52 de culminación de Entrega 2).
+- **Juan Felipe:** 26 commits (Commits 1 al 20 de Entrega 1 + Commits 21 al 26 de inicio de Entrega 2).
+- **Juan David:** 26 commits (Commits de Entrega 1 + Commits 37 al 52 de culminación de Entrega 2).
 
 ### Tabla de Commits de la Fase Final (Juan David):
 | Commit | Hash / Tipo | Mensaje de Commit Oficial | Módulo Impactado |

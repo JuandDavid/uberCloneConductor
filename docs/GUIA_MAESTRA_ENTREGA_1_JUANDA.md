@@ -1,6 +1,6 @@
 # PROYECTO: UBERCLONE CONDUCTOR (UNIVERSIDAD)
 ## Entrega 1: 5 de Noviembre | Materia: Programación Móvil
-**Integrantes:** Juan Felipe (Fiera) y Juan David (Juanda)  
+**Integrantes:** Juan Felipe y Juan David  
 **Docente:** Paula Andrea Muñoz Correa  
 **Tecnologías:** React Native con Expo (SDK 57) • Firebase Firestore Web (</>)  
 **Repositorio Oficial del Proyecto:** https://github.com/JuandDavid/uberCloneConductor.git
@@ -27,13 +27,13 @@
 
 ---
 
-## 2. ESTRATEGIA DE EQUIPO: 20 COMMITS (10 FIERA / 10 JUANDA)
+## 2. ESTRATEGIA DE EQUIPO: 20 COMMITS (10 Juan Felipe / 10 Juan David)
 
 Para reflejar un trabajo universitario colaborativo y natural:
-- Exactamente 20 commits distribuidos entre Fiera y Juanda según la tabla de `docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md`.
+- Exactamente 20 commits distribuidos entre Juan Felipe y Juan David según la tabla de `docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md`.
 - Se trabaja con ramas `feature/fiera-xxx` y `feature/juanda-xxx`, integrando a `main` con Pull Requests o merge limpio.
 - **Antes de cada commit:** Verificar que la autoría de Git (`git config user.name`) corresponda a quien le toca en la tabla:
-  - Fiera: `git config user.name "Juan Felipe"`
+  - Juan Felipe: `git config user.name "Juan Felipe"`
   - Juanda: `git config user.name "Juan David"`
 
 ---
@@ -56,26 +56,26 @@ Al desarrollar cada módulo, se respetan los criterios de aceptación acordados:
 
 | Commit | Responsable | Mensaje de Commit Sugerido | Descripción de la Tarea |
 | :---: | :---: | :--- | :--- |
-| **01** | **Fiera** | `docs: documentar alcance y requerimientos de la primera entrega (registro)` | Crea `README.md` con alcance de Pestaña 1, Pestaña 2 y criterios de aceptación. |
+| **01** | **Juan Felipe** | `docs: documentar alcance y requerimientos de la primera entrega (registro)` | Crea `README.md` con alcance de Pestaña 1, Pestaña 2 y criterios de aceptación. |
 | **02** | **Juanda** | `docs: definir convencion de ramas git y criterios de aceptacion de registro` | Añade guía de ramas (`main`, `feature/`), formato de commits y definición de terminado. |
-| **03** | **Fiera** | `chore: inicializar proyecto expo sdk 57 y estructura base de carpetas` | Crea proyecto con `npx create-expo-app` y arma carpetas `src/components`, `src/screens`, `src/context`, `src/services`, `src/styles`. |
+| **03** | **Juan Felipe** | `chore: inicializar proyecto expo sdk 57 y estructura base de carpetas` | Crea proyecto con `npx create-expo-app` y arma carpetas `src/components`, `src/screens`, `src/context`, `src/services`, `src/styles`. |
 | **04** | **Juanda** | `chore: configurar gitignore y template de variables de entorno .env.example` | Ignora `node_modules`, `.expo`, archivos `.env`, y añade `.env.example`. |
-| **05** | **Fiera** | `test: verificar ejecucion limpia de expo en android sin errores de inicio` | Comprueba ejecución en celular y corre `npx expo-doctor` para validar compatibilidad. |
-| **06** | **Fiera** | `feat(ui): componente InputWithValidation para mensajes de error debajo del campo` | Crea `InputWithValidation.js` con soporte para etiquetas, errores inline en rojo e íconos. |
+| **05** | **Juan Felipe** | `test: verificar ejecucion limpia de expo en android sin errores de inicio` | Comprueba ejecución en celular y corre `npx expo-doctor` para validar compatibilidad. |
+| **06** | **Juan Felipe** | `feat(ui): componente InputWithValidation para mensajes de error debajo del campo` | Crea `InputWithValidation.js` con soporte para etiquetas, errores inline en rojo e íconos. |
 | **07** | **Juanda** | `feat(ui): componente CustomButton y tema base de colores corporativos` | Crea `CustomButton.js` y `src/styles/theme.js` con la paleta de colores. |
-| **08** | **Fiera** | `feat(nav): configurar Stack navigator y pantalla contenedora de registro` | Configura `@react-navigation/native` y `@react-navigation/native-stack` con la ruta de Registro. |
+| **08** | **Juan Felipe** | `feat(nav): configurar Stack navigator y pantalla contenedora de registro` | Configura `@react-navigation/native` y `@react-navigation/native-stack` con la ruta de Registro. |
 | **09** | **Juanda** | `feat(nav): implementar barra de navegacion por pestañas para el registro` | Diseña las pestañas superiores (1. Personal, 2. Vehículo, 3. Documentos) con indicador activo. |
 | **10** | **Juanda** | `feat(firebase): configurar conexion web a firestore segun estructura de clase` | Crea `src/config/firebase.js` con `initializeApp` y exporta la constante `db = getFirestore(app)`. |
 | **11** | **Juanda** | `feat(services): crear dbService con funciones para guardar y leer conductores` | Crea `src/services/dbService.js` con las funciones `saveDriver` y `getDriver`. |
-| **12** | **Fiera** | `feat(auth): crear AuthContext para almacenar estado del conductor y sesion local` | Crea `src/context/AuthContext.js` con persistencia mediante `@react-native-async-storage/async-storage`. |
+| **12** | **Juan Felipe** | `feat(auth): crear AuthContext para almacenar estado del conductor y sesion local` | Crea `src/context/AuthContext.js` con persistencia mediante `@react-native-async-storage/async-storage`. |
 | **13** | **Juanda** | `fix(auth): enlazar contexto con la coleccion drivers de firestore` | Conecta el `AuthContext` con `dbService` para sincronizar con Firestore en segundo plano. |
-| **14** | **Fiera** | `feat(registro): formulario de datos personales (pestaña 1) con validaciones` | Implementa inputs de nombre, cédula, celular, fecha de nacimiento y correo con validaciones regex. |
-| **15** | **Fiera** | `feat(registro): selector de foto de perfil con expo-image-picker` | Integra `launchImageLibraryAsync` para capturar la foto de perfil del conductor. |
+| **14** | **Juan Felipe** | `feat(registro): formulario de datos personales (pestaña 1) con validaciones` | Implementa inputs de nombre, cédula, celular, fecha de nacimiento y correo con validaciones regex. |
+| **15** | **Juan Felipe** | `feat(registro): selector de foto de perfil con expo-image-picker` | Integra `launchImageLibraryAsync` para capturar la foto de perfil del conductor. |
 | **16** | **Juanda** | `feat(registro): formulario de vehiculo (pestaña 2) con seleccion de categoria` | Implementa inputs de marca, modelo, año, capacidad y selector de categoría (*Economy*, *XL*, *Premium*). |
 | **17** | **Juanda** | `feat(registro): validacion de placa colombiana en mayusculas y foto del vehiculo` | Añade regex `^[A-Z]{3}\d{3}$` para placas colombianas y selector de foto del carro. |
-| **18** | **Fiera** | `fix(registro): corregir formato de placa y bloqueo de navegacion a pestaña 2` | Fiera revisa la rama de Juanda y añade validación para pasar automáticamente a mayúsculas y control de tabs. |
+| **18** | **Juan Felipe** | `fix(registro): corregir formato de placa y bloqueo de navegacion a pestaña 2` | Juan Felipe revisa la rama de Juanda y añade validación para pasar automáticamente a mayúsculas y control de tabs. |
 | **19** | **Juanda** | `feat(registro): guardar conductor en firestore con estado pending_approval` | Conecta el botón final de la pestaña 2 con `registerDriver` para persistir en Firestore. |
-| **20** | **Fiera / Juanda** | `test(registro): validar flujo completo de registro de pestañas 1 y 2 en celular` | Prueban el flujo de punta a punta en sus celulares y documentan capturas de prueba. |
+| **20** | **Juan Felipe / Juan David** | `test(registro): validar flujo completo de registro de pestañas 1 y 2 en celular` | Prueban el flujo de punta a punta en sus celulares y documentan capturas de prueba. |
 
 ---
 

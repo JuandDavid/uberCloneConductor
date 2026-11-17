@@ -255,6 +255,35 @@ export async function getDriverTrips(driverId) {
   }
 }
 
+
+/**
+ * Guarda un viaje completado con todas sus métricas y actualiza el saldo del conductor.
+ * 
+ * @param {Object} tripData - Datos completos del viaje finalizado
+ * @returns {Promise<Object>} Viaje completado guardado
+ */
+export async function saveCompletedTrip(tripData) {
+  try {
+    const saved = await saveTrip({
+      ...tripData,
+      status: 'completed',
+      completedAt: tripData.completedAt || new Date().toISOString(),
+    });
+
+    if (tripData.driverId && typeof tripData.driverEarnings === 'number') {
+      const currentDriver = await getDriver(tripData.driverId);
+      if (currentDriver) {
+        const newBal = (currentDriver.balance || 0) + tripData.driverEarnings;
+        await updateDriverBalanceInDb(tripData.driverId, newBal);
+      }
+    }
+    return saved;
+  } catch (error) {
+    console.warn('dbService [saveCompletedTrip]:', error.message);
+    throw error;
+  }
+}
+
 export default {
   saveDriver,
   getDriver,
@@ -265,4 +294,5 @@ export default {
   updateTripStatus,
   getTrip,
   getDriverTrips,
+  saveCompletedTrip,
 };

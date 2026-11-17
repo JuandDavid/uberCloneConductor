@@ -21,6 +21,7 @@ export const TRIP_STATUS = {
   ARRIVED: 'arrived', // Conductor llegó al punto de recogida
   IN_PROGRESS: 'in_progress', // Pasajero a bordo, viaje en curso hacia el destino
   COMPLETED: 'completed', // Viaje finalizado, resumen de cobro
+  PAID: 'paid', // Pago confirmado por pasarela o registrado en efectivo (Requerimiento Sección 3 PDF)
   CANCELLED: 'cancelled', // Viaje descartado o cancelado
 };
 
@@ -292,6 +293,43 @@ export function TripProvider({ children }) {
     }
   }, [activeTrip, driver, updateDriverBalance]);
 
+
+  // Confirmar pago del viaje (Mercado Pago o efectivo) y marcar como 'paid'
+  const confirmTripPayment = useCallback(
+    async (paymentResult = {}) => {
+      if (!activeTrip?.id) return;
+
+      const paidAt = new Date().toISOString();
+      const paymentStatus = paymentResult.paymentStatus || (activeTrip.paymentMethod === 'Efectivo' ? 'cash' : 'approved');
+      const paymentId = paymentResult.paymentId || (activeTrip.paymentMethod === 'Efectivo' ? `CASH-${Date.now()}` : `MP-${Date.now()}`);
+
+      const updated = {
+        ...activeTrip,
+        status: TRIP_STATUS.PAID,
+        paymentStatus,
+        paymentId,
+        cardBrand: paymentResult.cardBrand || null,
+        lastFourDigits: paymentResult.lastFourDigits || null,
+        paidAt,
+      };
+
+      setActiveTrip(updated);
+
+      try {
+        await updateTripStatus(activeTrip.id, TRIP_STATUS.PAID, {
+          paymentStatus,
+          paymentId,
+          cardBrand: paymentResult.cardBrand || null,
+          lastFourDigits: paymentResult.lastFourDigits || null,
+          paidAt,
+        });
+      } catch (err) {
+        console.warn('TripContext [confirmTripPayment]:', err.message);
+      }
+    },
+    [activeTrip]
+  );
+
   // Restablecer a estado disponible para esperar nuevo servicio
   const resetTrip = useCallback(() => {
     setActiveTrip(null);
@@ -308,6 +346,7 @@ export function TripProvider({ children }) {
         completedTripsCount,
         formattedDailyEarnings: formatCOP(dailyEarnings),
         setOnlineStatus,
+        confirmTripPayment,
         toggleOnlineStatus,
         simulateIncomingTrip,
         acceptTrip,

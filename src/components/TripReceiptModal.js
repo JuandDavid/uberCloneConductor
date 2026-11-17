@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../styles/theme';
 import { useTranslation } from '../i18n/useTranslation';
 import { formatCOP } from '../config/pricing';
+import { MercadoPagoModal } from './MercadoPagoModal';
+import { formatPaymentStatusBadge } from '../services/mercadoPagoService';
 
 const QUICK_TAGS = ['Muy puntual', 'Amable y educado', 'Ruta clara', 'Excelente usuario'];
 
@@ -32,6 +34,10 @@ export function TripReceiptModal({
 }) {
   const [passengerRating, setPassengerRating] = useState(5);
   const [selectedTags, setSelectedTags] = useState(['Muy puntual']);
+  const [showMpModal, setShowMpModal] = useState(false);
+  const [paymentResult, setPaymentResult] = useState(
+    trip?.paymentStatus ? { paymentStatus: trip.paymentStatus, paymentId: trip.paymentId } : null
+  );
 
   if (!visible || !trip) return null;
 
@@ -41,6 +47,10 @@ export function TripReceiptModal({
   const paymentMethod = trip.paymentMethod || 'Efectivo';
   const isCash = paymentMethod.toLowerCase().includes('efectivo');
 
+
+  const effectiveStatus = isCash ? 'cash' : (paymentResult?.paymentStatus || trip.paymentStatus || 'pending');
+  const statusBadge = formatPaymentStatusBadge(effectiveStatus);
+  const isMpApproved = effectiveStatus === 'approved';
   const passengerName = trip.passenger?.name || 'Pasajero';
   const distanceKm = trip.distanceKm ? `${trip.distanceKm} km` : '6.8 km';
   const durationMin = trip.durationMinutes ? `${trip.durationMinutes} min` : '18 min';
@@ -77,24 +87,66 @@ export function TripReceiptModal({
               </Text>
             </View>
 
-            {/* TARJETA DE COBRO AL CLIENTE */}
+            {/* TARJETA DE COBRO AL CLIENTE CON MERCADO PAGO */}
             <View style={[styles.paymentCard, isCash ? styles.paymentCardCash : styles.paymentCardDigital]}>
               <View style={styles.paymentMethodHeader}>
                 <Ionicons
-                  name={isCash ? 'cash-outline' : 'card-outline'}
+                  name={isCash ? 'cash-outline' : 'card'}
                   size={18}
-                  color={isCash ? '#15803D' : '#1D4ED8'}
+                  color={isCash ? '#15803D' : '#009EE3'}
                 />
-                <Text style={[styles.paymentMethodLabel, isCash ? styles.labelCash : styles.labelDigital]}>
-                  {isCash ? (isSpanish ? 'COBRO EN EFECTIVO' : 'CASH PAYMENT') : (isSpanish ? 'PAGO DIGITAL EN LÍNEA' : 'DIGITAL PAYMENT')}
+                <Text style={[styles.paymentMethodLabel, isCash ? styles.labelCash : { color: '#009EE3' }]}>
+                  {isCash
+                    ? (isSpanish ? 'COBRO EN EFECTIVO' : 'CASH PAYMENT')
+                    : (isSpanish ? 'MERCADO PAGO CHECKOUT PRO' : 'MERCADO PAGO CHECKOUT PRO')}
                 </Text>
               </View>
 
               <Text style={styles.totalFareAmount}>{totalFare}</Text>
+
+              {/* BADGE DE ESTADO DEL PAGO (Requerimiento Sección 3 y 4 PDF) */}
+              <View style={[styles.statusBadgeRow, { backgroundColor: statusBadge.bgColor, borderColor: statusBadge.borderColor }]}>
+                <Ionicons name={statusBadge.icon} size={15} color={statusBadge.color} />
+                <Text style={[styles.statusBadgeText, { color: statusBadge.color }]}>
+                  Estado: {statusBadge.label} {isMpApproved ? '• Sandbox Acreditado' : ''}
+                </Text>
+              </View>
+
+              {/* INFORMACIÓN ADICIONAL DE MERCADO PAGO */}
+              {!isCash && (
+                <View style={styles.mpDetailsBox}>
+                  {isMpApproved ? (
+                    <>
+                      <Text style={styles.mpDetailLine}>
+                        ID Transacción: <Text style={{ fontWeight: '700' }}>{paymentResult?.paymentId || trip.paymentId || 'MP-PAY-789012'}</Text>
+                      </Text>
+                      <Text style={styles.mpDetailLine}>
+                        Medio: {paymentResult?.cardBrand || 'Visa'} •••• {paymentResult?.lastFourDigits || '4242'}
+                      </Text>
+                    </>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.openMpButton}
+                      onPress={() => setShowMpModal(true)}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Abrir pasarela de Mercado Pago"
+                    >
+                      <Ionicons name="card" size={16} color="#FFFFFF" />
+                      <Text style={styles.openMpButtonText}>
+                        Pagar con Mercado Pago (Tarjetas de Prueba)
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
               <Text style={styles.paymentInstruction}>
                 {isCash
                   ? 'Recibe este monto directamente en efectivo del pasajero.'
-                  : 'El valor ya fue debitado automáticamente de la tarjeta del usuario.'}
+                  : isMpApproved
+                  ? 'Pago verificado exitosamente mediante la pasarela de Mercado Pago.'
+                  : 'Pulsa el botón superior para procesar la transacción con tarjetas Sandbox.'}
               </Text>
             </View>
 
@@ -180,7 +232,7 @@ export function TripReceiptModal({
             {/* BOTÓN DE ACCIÓN FINAL */}
             <TouchableOpacity
               style={styles.confirmButton}
-              onPress={onConfirmPayment}
+              onPress={() => onConfirmPayment && onConfirmPayment(paymentResult || { paymentStatus: isCash ? 'cash' : 'approved', paymentId: `PAY-${Date.now()}` })}
               activeOpacity={0.85}
             >
               <Ionicons name="checkmark-done" size={22} color={colors.white} />
@@ -191,11 +243,63 @@ export function TripReceiptModal({
           </ScrollView>
         </View>
       </View>
+
+      {/* MODAL DE CHECKOUT PRO MERCADO PAGO */}
+      <MercadoPagoModal
+        visible={showMpModal}
+        trip={trip}
+        onPaymentSuccess={(res) => {
+          setPaymentResult(res);
+          setShowMpModal(false);
+        }}
+        onClose={() => setShowMpModal(false)}
+      />
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+
+  statusBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginVertical: 4,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  mpDetailsBox: {
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 6,
+  },
+  mpDetailLine: {
+    fontSize: 11,
+    color: '#0369A1',
+    marginVertical: 1,
+  },
+  openMpButton: {
+    backgroundColor: '#009EE3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginVertical: 4,
+  },
+  openMpButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',

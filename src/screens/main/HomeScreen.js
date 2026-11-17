@@ -51,12 +51,13 @@ const DEFAULT_COORDS = {
  * - Commit 42: Geolocalización GPS y Mapa Interactivo
  * - Commit 43: Switch Circular Online/Offline sincronizado con Firestore
  * 
- * Reglas académicas (Docente Paula Andrea Muñoz Correa):
+ * Criterios técnicos de implementación:
  * 1. El switch actualiza 'isOnline' en Firestore ('drivers').
  * 2. Cero popups de Alert; todo feedback visual se despliega inline con banners estilizados.
- * 3. Incorpora disparador de viajes demo para sustentación presencial en clase.
+ * 3. Incorpora disparador de viajes demo para demostración operativa en tiempo real.
  */
 export function HomeScreen({ navigation }) {
+  const { t, isSpanish } = useTranslation();
   const { driver } = useAuth();
   const {
     isOnline,

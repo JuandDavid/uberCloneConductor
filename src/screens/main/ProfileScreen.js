@@ -18,13 +18,14 @@ import { useTranslation } from '../../i18n/useTranslation';
  * Pantalla de Perfil del Conductor (ProfileScreen)
  * Centro de gestión de perfil, vehículo, documentos reglamentarios y sesión del conductor.
  * 
- * Reglas académicas (Docente Paula Andrea Muñoz Correa):
+ * Criterios técnicos de implementación:
  * 1. Arquitectura desacoplada: consume de AuthContext de forma reactiva.
  * 2. Cero popups de Alert.alert(); las confirmaciones y retroalimentaciones son modales/inline.
  * 3. Módulo de verificación de documentos (SOAT, Licencia, Tecnomecánica).
- * 4. Switch interactivo para alternar el estado de aprobación durante la sustentación docente.
+ * 4. Switch interactivo para alternar el estado de aprobación en pruebas.
  */
 export function ProfileScreen({ navigation }) {
+  const { t, isSpanish } = useTranslation();
   const {
     driver,
     logout,

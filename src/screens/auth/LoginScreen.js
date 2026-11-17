@@ -113,7 +113,7 @@ export function LoginScreen({ navigation }) {
             />
           </View>
 
-          {/* Accesos Rápidos Demo para Sustentación Docente */}
+          {/* Accesos Rápidos para Cuentas de Prueba */}
           <View style={styles.demoBox}>
             <View style={styles.demoHeader}>
               <Ionicons name="flash-outline" size={18} color="#D97706" />
@@ -134,7 +134,7 @@ export function LoginScreen({ navigation }) {
               <Ionicons name="person-circle" size={24} color={colors.black} />
               <View style={{ flex: 1, marginLeft: spacing.sm }}>
                 <Text style={styles.demoPillName}>Juan Felipe</Text>
-                <Text style={styles.demoPillSub}>C.C. 1098765432 • Conductor Demo</Text>
+                <Text style={styles.demoPillSub}>C.C. 1098765432 • Conductor Activo</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -149,7 +149,7 @@ export function LoginScreen({ navigation }) {
             >
               <Ionicons name="person-circle" size={24} color={colors.black} />
               <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                <Text style={styles.demoPillName}>Juan David (Juanda)</Text>
+                <Text style={styles.demoPillName}>Juan David</Text>
                 <Text style={styles.demoPillSub}>C.C. 1020304050 • Conductor Registrado</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />

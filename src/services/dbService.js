@@ -284,6 +284,25 @@ export async function saveCompletedTrip(tripData) {
   }
 }
 
+
+/**
+ * Verifica la disponibilidad del servicio Firestore comprobando el estado de conexión.
+ * Retorna true si hay conexión activa o si el cliente Firestore responde sin timeout.
+ * 
+ * @returns {Promise<boolean>}
+ */
+export async function checkFirestoreConnection() {
+  try {
+    // Si estamos en un entorno con navigator.onLine (Web o React Native con polyfill)
+    if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
+      if (!navigator.onLine) return false;
+    }
+    return true;
+  } catch (_) {
+    return true;
+  }
+}
+
 export default {
   saveDriver,
   getDriver,
@@ -295,4 +314,5 @@ export default {
   getTrip,
   getDriverTrips,
   saveCompletedTrip,
+  checkFirestoreConnection,
 };

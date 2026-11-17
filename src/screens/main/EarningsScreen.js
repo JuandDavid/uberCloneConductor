@@ -110,9 +110,20 @@ export function EarningsScreen({ navigation }) {
       setIsLoadingHistory(true);
       const firestoreTrips = await getDriverTrips(driver.id);
       if (firestoreTrips && firestoreTrips.length > 0) {
-        setTripsHistory(firestoreTrips);
+        // Ordenar cronológicamente descendente (el más reciente primero)
+        const sorted = [...firestoreTrips].sort((a, b) => {
+          const timeA = new Date(a.completedAt || a.createdAt || 0).getTime();
+          const timeB = new Date(b.completedAt || b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
+        setTripsHistory(sorted);
       } else {
-        setTripsHistory(FALLBACK_TRIPS);
+        const sortedFallback = [...FALLBACK_TRIPS].sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime();
+          const timeB = new Date(b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
+        setTripsHistory(sortedFallback);
       }
     } catch (err) {
       console.warn('EarningsScreen [loadHistory]:', err.message);

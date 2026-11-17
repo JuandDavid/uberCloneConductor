@@ -15,6 +15,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { colors, spacing } from '../../styles/theme';
 import { CustomButton } from '../../components/CustomButton';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/useTranslation';
 import { db } from '../../config/firebase';
 import { getDriver } from '../../services/dbService';
 
@@ -29,6 +30,7 @@ import { getDriver } from '../../services/dbService';
  */
 export function PendingApprovalScreen({ navigation }) {
   const { driver, toggleApprovalStatus, logout, setDriver } = useAuth();
+  const { t } = useTranslation();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [lastCheckMessage, setLastCheckMessage] = useState(null);
@@ -127,7 +129,7 @@ export function PendingApprovalScreen({ navigation }) {
           >
             <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Estado de la Cuenta</Text>
+          <Text style={styles.headerTitle}>{t('auth.accountStatusTitle')}</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -142,13 +144,11 @@ export function PendingApprovalScreen({ navigation }) {
           </View>
 
           <Text style={styles.statusHeroTitle}>
-            {isApproved ? '¡Cuenta Aprobada y Activa!' : 'Solicitud en Revisión'}
+            {isApproved ? t('auth.accountApproved') : t('auth.accountPending')}
           </Text>
 
           <Text style={styles.statusHeroSubtitle}>
-            {isApproved
-              ? 'Tus documentos han sido validados oficialmente por el administrador. Ya puedes conectarte y aceptar solicitudes de viaje.'
-              : 'Tus documentos personales y vehiculares están siendo verificados por el equipo de seguridad. Este proceso garantiza la calidad del servicio.'}
+            {isApproved ? t('auth.approvedDesc') : t('auth.pendingReviewDesc')}
           </Text>
 
           {/* Badge de Estado en Tiempo Real */}
@@ -172,7 +172,7 @@ export function PendingApprovalScreen({ navigation }) {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <Ionicons name="person-circle-outline" size={20} color={colors.black} />
-            <Text style={styles.sectionTitle}>Datos del Conductor</Text>
+            <Text style={styles.sectionTitle}>{t('auth.driverData')}</Text>
           </View>
 
           <View style={styles.driverProfileRow}>
@@ -212,7 +212,7 @@ export function PendingApprovalScreen({ navigation }) {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <Ionicons name="documents-outline" size={20} color={colors.black} />
-            <Text style={styles.sectionTitle}>Checklist de Documentos</Text>
+            <Text style={styles.sectionTitle}>{t('auth.docChecklist')}</Text>
           </View>
 
           <View style={styles.checkItem}>
@@ -226,7 +226,7 @@ export function PendingApprovalScreen({ navigation }) {
               <Text style={styles.checkItemSubtitle}>Cédula registrada: {driver?.documentId || 'Cargada'}</Text>
             </View>
             <Text style={[styles.checkItemStatus, isApproved && styles.checkItemStatusApproved]}>
-              {isApproved ? 'Verificado' : 'En revisión'}
+              {isApproved ? t('auth.checkVerified') : t('auth.checkPending')}
             </Text>
           </View>
 
@@ -243,7 +243,7 @@ export function PendingApprovalScreen({ navigation }) {
               </Text>
             </View>
             <Text style={[styles.checkItemStatus, isApproved && styles.checkItemStatusApproved]}>
-              {isApproved ? 'Verificado' : 'En revisión'}
+              {isApproved ? t('auth.checkVerified') : t('auth.checkPending')}
             </Text>
           </View>
 
@@ -260,7 +260,7 @@ export function PendingApprovalScreen({ navigation }) {
               </Text>
             </View>
             <Text style={[styles.checkItemStatus, isApproved && styles.checkItemStatusApproved]}>
-              {isApproved ? 'Vigente' : 'En revisión'}
+              {isApproved ? t('profile.soatValid') : t('auth.checkPending')}
             </Text>
           </View>
 
@@ -275,7 +275,7 @@ export function PendingApprovalScreen({ navigation }) {
               <Text style={styles.checkItemSubtitle}>Términos de la plataforma aceptados</Text>
             </View>
             <Text style={[styles.checkItemStatus, isApproved && styles.checkItemStatusApproved]}>
-              Aceptado
+              {t('auth.checkAccepted')}
             </Text>
           </View>
         </View>
@@ -310,14 +310,14 @@ export function PendingApprovalScreen({ navigation }) {
         <View style={styles.actionsContainer}>
           {isApproved && (
             <CustomButton
-              title="Abrir Mapa del Conductor"
+              title={t('auth.openMap')}
               onPress={() => navigation?.navigate?.('Home')}
               style={{ width: '100%', marginBottom: spacing.sm }}
             />
           )}
 
           <CustomButton
-            title="Consultar Estado en Tiempo Real"
+            title={t('auth.checkStatus')}
             variant="secondary"
             onPress={handleRefresh}
             loading={isRefreshing}
@@ -325,7 +325,7 @@ export function PendingApprovalScreen({ navigation }) {
           />
 
           <CustomButton
-            title="Volver al Formulario de Registro"
+            title={t('auth.goToRegister')}
             variant="outline"
             onPress={() => navigation?.navigate?.('Register')}
             style={{ width: '100%', marginBottom: spacing.sm }}
@@ -337,7 +337,7 @@ export function PendingApprovalScreen({ navigation }) {
             activeOpacity={0.7}
           >
             <Ionicons name="log-out-outline" size={18} color={colors.offline} />
-            <Text style={styles.logoutButtonText}>Cerrar Sesión del Conductor</Text>
+            <Text style={styles.logoutButtonText}>{t('auth.logout')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

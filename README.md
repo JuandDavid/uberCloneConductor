@@ -77,10 +77,21 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 ---
 
 ## 👥 5. Flujo de Trabajo Colaborativo (Git)
-El proyecto se desarrolla bajo un esquema colaborativo riguroso de 20 commits divididos equitativamente entre los dos integrantes (10 commits Juan Felipe / 10 commits Juan David), utilizando ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`) y verificación continua de compilación.
+El proyecto se desarrolla bajo un esquema colaborativo riguroso y equitativo entre ambos integrantes:
+- **Juan Felipe ("Fiera"):** 36 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP).
+- **Juan David ("Juanda"):** 35 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico y soporte multilingüe en autenticación).
+- **Total:** 71 commits distribuidos simétricamente mediante ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`).
 
-Para más información, consultar:
-- [Informe de Pruebas y Validación (Entrega 1)](./docs/PRUEBAS_REGISTRO_ENTREGA_1.md)
-- [Convenciones de Git y Criterios de Aceptación](./docs/CONVENCIONES_GIT_Y_CRITERIOS.md)
-- [Guía de Desarrollo y Plan de Entrega 1](./docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md)
-- [Bitácora de Acompañamiento Técnico y Uso Responsable de IA](./docs/BITACORA_USO_IA.md)
+---
+
+## 🌐 6. Módulos Avanzados y Cierre del Proyecto
+
+### 🗣️ Internacionalización Dinámica (i18n)
+- Soporte nativo para **Español (es)** e **Inglés (en)** sin dependencias externas pesadas.
+- Módulo centralizado en `src/i18n/translations.js` y hook reactivo `useTranslation.js` sincronizado con `AuthContext`.
+- Cobertura completa: navegación, estado de conexión, recepción de viajes, cobro, historial, perfil y pantallas de autenticación.
+
+### 💰 Historial Financiero y Detalle de Carreras
+- Ordenamiento cronológico descendente en `EarningsScreen` para priorizar las carreras más recientes.
+- Modal interactivo con desglose de liquidación (tarifa base, distancia, comisión de plataforma y ganancia neta).
+- Pruebas unitarias automatizadas con el test runner nativo de Node.js (`node --test`).

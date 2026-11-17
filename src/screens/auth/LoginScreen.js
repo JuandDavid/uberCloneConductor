@@ -15,6 +15,7 @@ import { colors, spacing } from '../../styles/theme';
 import { InputWithValidation } from '../../components/InputWithValidation';
 import { CustomButton } from '../../components/CustomButton';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /**
  * Pantalla de Inicio de Sesión del Conductor (LoginScreen).
@@ -27,6 +28,7 @@ import { useAuth } from '../../context/AuthContext';
  */
 export function LoginScreen({ navigation }) {
   const { loginWithIdentifier } = useAuth();
+  const { t } = useTranslation();
   const [identifier, setIdentifier] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,20 +79,20 @@ export function LoginScreen({ navigation }) {
             </View>
             <Text style={styles.appTitle}>UberClone Conductor</Text>
             <Text style={styles.appSubtitle}>
-              Ingresa a tu cuenta para gestionar tu vehículo, disponibilidad y viajes
+              {t('auth.loginSubtitle')}
             </Text>
           </View>
 
           {/* Tarjeta del Formulario de Ingreso */}
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Iniciar Sesión</Text>
+            <Text style={styles.formTitle}>{t('auth.formTitle')}</Text>
             <Text style={styles.formDesc}>
-              Ingresa el número de cédula o correo registrado en la plataforma.
+              {t('auth.formDesc')}
             </Text>
 
             <InputWithValidation
-              label="Cédula de Ciudadanía o Correo"
-              placeholder="Ej: 1098765432 o correo@ejemplo.com"
+              label={t('auth.docIdLabel')}
+              placeholder={t('auth.docIdPlaceholder')}
               value={identifier}
               onChangeText={(txt) => {
                 setIdentifier(txt);
@@ -103,7 +105,7 @@ export function LoginScreen({ navigation }) {
             />
 
             <CustomButton
-              title="Ingresar a la Plataforma"
+              title={t('auth.loginBtn')}
               onPress={() => handleLogin()}
               loading={isLoading}
               disabled={isLoading}
@@ -115,10 +117,10 @@ export function LoginScreen({ navigation }) {
           <View style={styles.demoBox}>
             <View style={styles.demoHeader}>
               <Ionicons name="flash-outline" size={18} color="#D97706" />
-              <Text style={styles.demoTitle}>Accesos Rápidos Demo (Sustentación)</Text>
+              <Text style={styles.demoTitle}>{t('auth.demoSectionTitle')}</Text>
             </View>
             <Text style={styles.demoSubtitle}>
-              Toca una cuenta para iniciar sesión instantáneamente sin escribir:
+              {t('auth.demoSectionSubtitle')}
             </Text>
 
             <TouchableOpacity
@@ -156,12 +158,12 @@ export function LoginScreen({ navigation }) {
 
           {/* Enlace hacia el Registro */}
           <View style={styles.registerLinkContainer}>
-            <Text style={styles.registerPrompt}>¿Aún no te has registrado como conductor?</Text>
+            <Text style={styles.registerPrompt}>{t('auth.noAccountPrompt')}</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Register')}
               activeOpacity={0.7}
             >
-              <Text style={styles.registerLink}>Crear Solicitud de Conductor</Text>
+              <Text style={styles.registerLink}>{t('auth.registerLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

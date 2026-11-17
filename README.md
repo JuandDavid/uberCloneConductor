@@ -78,9 +78,9 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 
 ## 👥 5. Flujo de Trabajo Colaborativo (Git)
 El proyecto se desarrolla bajo un esquema colaborativo riguroso y equitativo entre ambos integrantes:
-- **Juan Felipe ("Fiera"):** 40 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago y configuración de compilación de APK).
-- **Juan David ("Juanda"):** 40 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación de empaquetado).
-- **Total:** 80 commits distribuidos simétricamente (50% / 50%) mediante ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`).
+- **Juan Felipe ("Fiera"):** 42 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago, configuración de APK y bitácora AI_LOG.md).
+- **Juan David ("Juanda"):** 42 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación completa de rúbrica).
+- **Total:** 84 commits distribuidos con simetría exacta (50% / 50%) mediante ramas de características (`feature/fiera-xxx` y `feature/juanda-xxx`).
 
 ---
 
@@ -121,3 +121,12 @@ La aplicación cuenta con configuración nativa completa en `app.json` y `eas.js
 3. **Descarga e Instalación:**
    - EAS Build procesará el empaquetado en los servidores de Expo (aproximadamente 8-12 minutos).
    - Al finalizar, la terminal mostrará un **código QR y un enlace directo de descarga** para bajar el archivo `.apk` e instalarlo inmediatamente en el celular del evaluador o docente.
+
+---
+
+## 🤖 8. Uso Responsable de Inteligencia Artificial (Bitácora Oficial)
+
+En estricto cumplimiento de las directrices académicas y de la rúbrica oficial de la asignatura (Secciones 8 y 9 del documento de requerimientos de la docente Paula Andrea Muñoz Correa), el registro detallado de las 15 sesiones de acompañamiento técnico, consultas de arquitectura y pair programming se encuentra documentado en:
+
+* 📄 **Bitácora Oficial:** [`docs/AI_LOG.md`](docs/AI_LOG.md) (y su réplica espejo [`docs/BITACORA_USO_IA.md`](docs/BITACORA_USO_IA.md)).
+* Cada entrada registra la fecha, integrante responsable, prompt orientador, análisis crítico del equipo y la decisión técnica final adoptada.

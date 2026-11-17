@@ -31,7 +31,7 @@
 
 Para reflejar un trabajo universitario colaborativo y natural:
 - Exactamente 20 commits distribuidos entre Juan Felipe y Juan David según la tabla de `docs/GUIA_MAESTRA_ENTREGA_1_JUANDA.md`.
-- Se trabaja con ramas `feature/fiera-xxx` y `feature/juanda-xxx`, integrando a `main` con Pull Requests o merge limpio.
+- Se trabaja con ramas `feature/felipe-xxx` y `feature/juanda-xxx`, integrando a `main` con Pull Requests o merge limpio.
 - **Antes de cada commit:** Verificar que la autoría de Git (`git config user.name`) corresponda a quien le toca en la tabla:
   - Juan Felipe: `git config user.name "Juan Felipe"`
   - Juanda: `git config user.name "Juan David"`

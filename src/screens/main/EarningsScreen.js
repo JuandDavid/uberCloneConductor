@@ -1017,7 +1017,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-});
   currencyPrefix: {
     fontSize: 18,
     fontWeight: '800',

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../styles/theme';
 import { useTrip, TRIP_STATUS } from '../../context/TripContext';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useAuth } from '../../context/AuthContext';
 import { TripReceiptModal } from '../../components/TripReceiptModal';
 import { InteractiveMap } from '../../components/InteractiveMap';
@@ -83,6 +84,7 @@ export function ActiveTripScreen({ navigation }) {
 
   const isGoingToPickup = tripState === TRIP_STATUS.ACCEPTED;
   const isWaitingPassenger = tripState === TRIP_STATUS.ARRIVED;
+  const { t, isSpanish } = useTranslation();
   const isTripInProgress = tripState === TRIP_STATUS.IN_PROGRESS;
 
   const currentAddress = isTripInProgress
@@ -256,7 +258,7 @@ export function ActiveTripScreen({ navigation }) {
             <Text style={styles.fareAmountTag}>
               {activeTrip.formattedEarnings || '$ 14.800'}
             </Text>
-            <Text style={styles.fareSubtext}>Tu ganancia</Text>
+            <Text style={styles.fareSubtext}>{isSpanish ? 'Tu ganancia' : 'Your earnings'}</Text>
           </View>
         </View>
 

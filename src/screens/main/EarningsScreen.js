@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../styles/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useTrip } from '../../context/TripContext';
 import { formatCOP } from '../../config/pricing';
 import { getDriverTrips } from '../../services/dbService';
@@ -177,7 +178,7 @@ export function EarningsScreen({ navigation }) {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* CABECERA */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Ganancias</Text>
+        <Text style={styles.headerTitle}>{t('earnings.title')}</Text>
         <TouchableOpacity
           style={styles.refreshButton}
           onPress={loadHistory}
@@ -206,7 +207,7 @@ export function EarningsScreen({ navigation }) {
       >
         {/* TARJETA DE BALANCE ACUMULADO */}
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Balance Total Disponible</Text>
+          <Text style={styles.balanceLabel}>{t('earnings.totalBalance')}</Text>
           <Text style={styles.balanceAmount}>{formattedTotalBalance}</Text>
           <Text style={styles.balanceSubtext}>
             Saldo acumulado por carreras realizadas. Disponible para transferencia inmediata.
@@ -222,19 +223,19 @@ export function EarningsScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <Ionicons name="wallet-outline" size={18} color={colors.black} />
-            <Text style={styles.transferButtonText}>Solicitar Retiro de Saldo</Text>
+            <Text style={styles.transferButtonText}>{t('earnings.withdrawBtn')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* RESUMEN DEL DÍA */}
-        <Text style={styles.sectionTitle}>RESUMEN DE HOY</Text>
+        <Text style={styles.sectionTitle}>{isSpanish ? 'RESUMEN DE HOY' : "TODAY'S SUMMARY"}</Text>
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <View style={styles.statIconBox}>
               <Ionicons name="cash-outline" size={20} color="#15803D" />
             </View>
             <Text style={styles.statValue}>{formattedDailyEarnings || '$ 0'}</Text>
-            <Text style={styles.statLabel}>Ganado Hoy</Text>
+            <Text style={styles.statLabel}>{t('earnings.todayBalance')}</Text>
           </View>
 
           <View style={styles.statBox}>
@@ -242,7 +243,7 @@ export function EarningsScreen({ navigation }) {
               <Ionicons name="car-sport-outline" size={20} color="#2563EB" />
             </View>
             <Text style={styles.statValue}>{completedTripsCount || 0}</Text>
-            <Text style={styles.statLabel}>Viajes Hechos</Text>
+            <Text style={styles.statLabel}>{t('earnings.completedTrips')}</Text>
           </View>
 
           <View style={styles.statBox}>
@@ -250,14 +251,14 @@ export function EarningsScreen({ navigation }) {
               <Ionicons name="star" size={20} color="#EAB308" />
             </View>
             <Text style={styles.statValue}>5.0 ★</Text>
-            <Text style={styles.statLabel}>Calificación</Text>
+            <Text style={styles.statLabel}>{t('header.rating')}</Text>
           </View>
         </View>
 
         {/* GRÁFICA DE ACTIVIDAD SEMANAL */}
         <View style={styles.chartCard}>
           <View style={styles.chartHeader}>
-            <Text style={styles.chartTitle}>Rendimiento Semanal</Text>
+            <Text style={styles.chartTitle}>{isSpanish ? 'Rendimiento Semanal' : 'Weekly Performance'}</Text>
             <Text style={styles.chartHighlight}>
               {selectedDay ? `${selectedDay.day}: ${formatCOP(selectedDay.amount)}` : ''}
             </Text>
@@ -292,7 +293,7 @@ export function EarningsScreen({ navigation }) {
         </View>
 
         {/* HISTORIAL DE VIAJES REALIZADOS */}
-        <Text style={styles.sectionTitle}>HISTORIAL DE VIAJES RECIENTES</Text>
+        <Text style={styles.sectionTitle}>{isSpanish ? 'HISTORIAL DE VIAJES RECIENTES' : 'RECENT TRIP HISTORY'}</Text>
         {tripsHistory.map((trip) => {
           const isCompleted = trip.status === 'completed';
           const earningsFormatted = trip.formattedEarnings || (trip.driverEarnings ? formatCOP(trip.driverEarnings) : '$ 0');
@@ -344,7 +345,7 @@ export function EarningsScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Solicitar Retiro de Saldo</Text>
+              <Text style={styles.modalTitle}>{t('earnings.withdrawNequiTitle')}</Text>
               <TouchableOpacity
                 onPress={() => setWithdrawModalVisible(false)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -354,7 +355,7 @@ export function EarningsScreen({ navigation }) {
             </View>
 
             <Text style={styles.modalSubtitle}>
-              Saldo disponible: <Text style={{ color: '#22C55E', fontWeight: '900' }}>{formattedTotalBalance}</Text>
+              {isSpanish ? 'Saldo disponible: ' : 'Available balance: '}<Text style={{ color: '#22C55E', fontWeight: '900' }}>{formattedTotalBalance}</Text>
             </Text>
 
             {/* ERROR INLINE (Cero Alert.alert) */}
@@ -366,7 +367,7 @@ export function EarningsScreen({ navigation }) {
             )}
 
             {/* SELECCIÓN DE PROVEEDOR */}
-            <Text style={styles.fieldLabel}>SELECCIONA TU CUENTA DESTINO</Text>
+            <Text style={styles.fieldLabel}>{isSpanish ? 'SELECCIONA TU CUENTA DESTINO' : 'SELECT DESTINATION ACCOUNT'}</Text>
             <View style={styles.providersRow}>
               {['Nequi', 'Daviplata', 'Bancolombia'].map((p) => {
                 const isSelected = selectedPaymentProvider === p;
@@ -386,7 +387,7 @@ export function EarningsScreen({ navigation }) {
             </View>
 
             {/* MONTO A RETIRAR */}
-            <Text style={styles.fieldLabel}>MONTO A RETIRAR (COP)</Text>
+            <Text style={styles.fieldLabel}>{isSpanish ? 'MONTO A RETIRAR (COP)' : 'AMOUNT TO WITHDRAW (COP)'}</Text>
             <View style={styles.inputWrap}>
               <Text style={styles.currencyPrefix}>$</Text>
               <TextInput
@@ -405,7 +406,7 @@ export function EarningsScreen({ navigation }) {
               activeOpacity={0.85}
             >
               <Ionicons name="send" size={18} color={colors.black} />
-              <Text style={styles.confirmWithdrawButtonText}>Confirmar Transferencia</Text>
+              <Text style={styles.confirmWithdrawButtonText}>{isSpanish ? 'Confirmar Transferencia' : 'Confirm Transfer'}</Text>
             </TouchableOpacity>
           </View>
         </View>

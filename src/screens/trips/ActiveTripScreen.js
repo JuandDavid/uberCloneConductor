@@ -54,6 +54,7 @@ export function ActiveTripScreen({ navigation }) {
     finishTrip,
     rejectTrip,
     resetTrip,
+    confirmTripPayment,
   } = useTrip();
 
   const [feedbackMessage, setFeedbackMessage] = useState(null);
@@ -128,9 +129,17 @@ export function ActiveTripScreen({ navigation }) {
   };
 
   // Confirmar cobro y regresar al mapa principal
-  const handleConfirmPaymentReceipt = () => {
-    resetTrip();
-    navigation?.navigate?.('Home');
+  const handleConfirmPaymentReceipt = async (paymentResult) => {
+    try {
+      if (confirmTripPayment) {
+        await confirmTripPayment(paymentResult);
+      }
+    } catch (err) {
+      console.warn('ActiveTripScreen [handleConfirmPaymentReceipt]:', err.message);
+    } finally {
+      resetTrip();
+      navigation?.navigate?.('Home');
+    }
   };
 
   // Cancelar servicio

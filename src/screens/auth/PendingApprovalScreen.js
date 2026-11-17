@@ -280,15 +280,15 @@ export function PendingApprovalScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Zona de Demostración Docente (Paula Andrea) */}
+        {/* Panel de Simulación Administrativa */}
         <View style={styles.academicDemoCard}>
           <View style={styles.academicDemoHeader}>
-            <Ionicons name="school-outline" size={20} color="#6366F1" />
-            <Text style={styles.academicDemoTitle}>Sustentación Docente — Paula Andrea</Text>
+            <Ionicons name="shield-checkmark-outline" size={18} color="#4338CA" />
+            <Text style={styles.academicDemoTitle}>Simulación de Validación Administrativa</Text>
           </View>
           <Text style={styles.academicDemoDesc}>
-            Para la sustentación en clase: utiliza este control para alternar el estado en tiempo real en Firestore
-            ('pending_approval' ⟷ 'approved') y demostrar la transición del conductor.
+            Control de pruebas: permite alternar el estado del conductor en Firestore
+            ('pending_approval' ⟷ 'approved') para verificar la activación en tiempo real.
           </Text>
 
           <CustomButton
@@ -296,8 +296,8 @@ export function PendingApprovalScreen({ navigation }) {
               isToggling
                 ? 'Actualizando Firestore...'
                 : isApproved
-                ? 'Simular Desaprobación (Volver a Pendiente)'
-                : 'Simular Aprobación Docente (Habilitar)'
+                ? 'Revertir a Pendiente de Aprobación'
+                : 'Aprobar Conductor (Simulación)'
             }
             onPress={handleToggleSimulatedStatus}
             loading={isToggling}

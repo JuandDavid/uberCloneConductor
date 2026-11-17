@@ -523,7 +523,7 @@ export function HomeScreen({ navigation }) {
             </View>
           )}
 
-          {/* Botón de Demostración Docente (Paula Andrea) */}
+          {/* Botón de Simulación de Solicitud */}
           {isOnline && (
             <TouchableOpacity
               style={styles.demoTriggerButton}

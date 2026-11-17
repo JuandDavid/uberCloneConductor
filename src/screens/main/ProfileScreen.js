@@ -248,8 +248,8 @@ export function ProfileScreen({ navigation }) {
           </View>
         </View>
 
-        {/* DEMOSTRACIÓN DOCENTE: ALTERNAR APROBACIÓN */}
-        <Text style={styles.sectionTitle}>MODO DEMOSTRACIÓN (DOCENTE PAULA ANDREA)</Text>
+        {/* ENTORNO DE PRUEBAS: ALTERNAR APROBACIÓN */}
+        <Text style={styles.sectionTitle}>ENTORNO DE PRUEBAS</Text>
         <TouchableOpacity
           style={styles.demoToggleCard}
           onPress={handleToggleApproval}

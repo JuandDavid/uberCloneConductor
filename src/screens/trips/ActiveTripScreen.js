@@ -56,6 +56,7 @@ export function ActiveTripScreen({ navigation }) {
     resetTrip,
     confirmTripPayment,
   } = useTrip();
+  const { t, isSpanish } = useTranslation();
 
   const [feedbackMessage, setFeedbackMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -85,7 +86,6 @@ export function ActiveTripScreen({ navigation }) {
 
   const isGoingToPickup = tripState === TRIP_STATUS.ACCEPTED;
   const isWaitingPassenger = tripState === TRIP_STATUS.ARRIVED;
-  const { t, isSpanish } = useTranslation();
   const isTripInProgress = tripState === TRIP_STATUS.IN_PROGRESS;
 
   const currentAddress = isTripInProgress

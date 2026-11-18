@@ -32,7 +32,6 @@ export function PendingApprovalScreen({ navigation }) {
   const { driver, toggleApprovalStatus, logout, setDriver } = useAuth();
   const { t } = useTranslation();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
   const [lastCheckMessage, setLastCheckMessage] = useState(null);
 
   const isApproved = driver?.status === 'approved';
@@ -86,23 +85,6 @@ export function PendingApprovalScreen({ navigation }) {
       setLastCheckMessage('Error al consultar Firestore. Mostrando último estado en caché.');
     } finally {
       setIsRefreshing(false);
-    }
-  };
-
-  // Acción para simular la aprobación administrativa en clase con la docente
-  const handleToggleSimulatedStatus = async () => {
-    try {
-      setIsToggling(true);
-      await toggleApprovalStatus();
-      setLastCheckMessage(
-        isApproved
-          ? 'Estado revertido a "Pendiente de Aprobación" para demostración.'
-          : '¡Estado actualizado a "Aprobado"! Conductor habilitado en plataforma.'
-      );
-    } catch (err) {
-      console.warn('Error al alternar estado simulado:', err);
-    } finally {
-      setIsToggling(false);
     }
   };
 
@@ -278,32 +260,6 @@ export function PendingApprovalScreen({ navigation }) {
               {t('auth.checkAccepted')}
             </Text>
           </View>
-        </View>
-
-        {/* Panel de Simulación Administrativa */}
-        <View style={styles.academicDemoCard}>
-          <View style={styles.academicDemoHeader}>
-            <Ionicons name="shield-checkmark-outline" size={18} color="#4338CA" />
-            <Text style={styles.academicDemoTitle}>Simulación de Validación Administrativa</Text>
-          </View>
-          <Text style={styles.academicDemoDesc}>
-            Control de pruebas: permite alternar el estado del conductor en Firestore
-            ('pending_approval' ⟷ 'approved') para verificar la activación en tiempo real.
-          </Text>
-
-          <CustomButton
-            title={
-              isToggling
-                ? 'Actualizando Firestore...'
-                : isApproved
-                ? 'Revertir a Pendiente de Aprobación'
-                : 'Aprobar Conductor (Simulación)'
-            }
-            onPress={handleToggleSimulatedStatus}
-            loading={isToggling}
-            variant={isApproved ? 'outline' : 'primary'}
-            style={{ width: '100%', marginTop: spacing.sm }}
-          />
         </View>
 
         {/* Botones de Acción */}
@@ -580,31 +536,6 @@ const styles = StyleSheet.create({
   },
   checkItemStatusApproved: {
     color: '#15803D',
-  },
-  academicDemoCard: {
-    backgroundColor: '#EEF2FF',
-    borderRadius: 14,
-    padding: spacing.md,
-    borderWidth: 1.5,
-    borderColor: '#C7D2FE',
-    marginBottom: spacing.md,
-  },
-  academicDemoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  academicDemoTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#4338CA',
-  },
-  academicDemoDesc: {
-    fontSize: 12,
-    color: '#4B5563',
-    lineHeight: 17,
-    marginBottom: spacing.xs,
   },
   actionsContainer: {
     marginTop: spacing.xs,

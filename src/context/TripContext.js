@@ -37,7 +37,7 @@ const DEMO_TRIP_SAMPLES = [
     dropoffCoords: { latitude: 6.1970, longitude: -75.5740 },
     distanceKm: 4.2,
     durationMinutes: 14,
-    paymentMethod: 'Efectivo',
+    paymentMethod: 'Mercado Pago',
     routeCoordinates: demoRoutes.trip1 || [],
     pickupRouteCoordinates: demoRoutes.trip1_toPickup || [],
   },

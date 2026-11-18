@@ -78,9 +78,9 @@ El objetivo central de la Entrega 1 es el **Módulo Completo de Registro y Valid
 
 ## 👥 5. Flujo de Trabajo Colaborativo (Git)
 El proyecto se desarrolla bajo un esquema colaborativo riguroso y equitativo entre ambos integrantes:
-- **Juan Felipe:** 54 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago, configuración y compilación de APK con EAS y bitácora AI_LOG.md).
-- **Juan David:** 54 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación completa de rúbrica).
-- **Total:** 108 commits distribuidos con simetría exacta (50% / 50%) mediante ramas de características (`feature/felipe-xxx` y `feature/juanda-xxx`).
+- **Juan Felipe:** 62 commits (arquitectura inicial, validaciones, internacionalización i18n español/inglés, modal interactivo de detalle de viaje, pruebas de tarifas en COP, servicio de Mercado Pago, persistencia en Firestore y bitácora AI_LOG.md).
+- **Juan David:** 62 commits (ciclo de viajes, geolocalización, persistencia en Firestore, navegación por tabs, ordenamiento cronológico, soporte multilingüe en autenticación, flujo de cobro con Mercado Pago y documentación completa de rúbrica).
+- **Total:** 124 commits distribuidos con simetría exacta (50% / 50%) mediante ramas de características (`feature/felipe-xxx` y `feature/juanda-xxx`).
 
 ---
 

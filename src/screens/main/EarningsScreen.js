@@ -94,6 +94,7 @@ export function EarningsScreen({ navigation }) {
 
   const [tripsHistory, setTripsHistory] = useState(FALLBACK_TRIPS);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [selectedTripDetail, setSelectedTripDetail] = useState(null);
   const [selectedDay, setSelectedDay] = useState(WEEKLY_DATA[WEEKLY_DATA.length - 1]);
   const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');

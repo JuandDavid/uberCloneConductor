@@ -173,8 +173,22 @@ export async function saveTrip(tripData) {
   try {
     const tripId = tripData.id || `trip_${Date.now()}`;
     const docRef = doc(db, TRIPS_COLLECTION, tripId);
+
+    // Sanitizar coordenadas de ruta para Firestore (no soporta nested arrays [[lat, lng]])
+    const sanitizedData = { ...tripData };
+    if (Array.isArray(sanitizedData.routeCoordinates)) {
+      sanitizedData.routeCoordinates = sanitizedData.routeCoordinates.map((c) =>
+        Array.isArray(c) ? { latitude: c[0], longitude: c[1] } : c
+      );
+    }
+    if (Array.isArray(sanitizedData.pickupRouteCoordinates)) {
+      sanitizedData.pickupRouteCoordinates = sanitizedData.pickupRouteCoordinates.map((c) =>
+        Array.isArray(c) ? { latitude: c[0], longitude: c[1] } : c
+      );
+    }
+
     const dataToSave = {
-      ...tripData,
+      ...sanitizedData,
       id: tripId,
       updatedAt: new Date().toISOString(),
       createdAt: tripData.createdAt || new Date().toISOString(),

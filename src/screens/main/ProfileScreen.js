@@ -55,18 +55,6 @@ export function ProfileScreen({ navigation }) {
   const tecnoExp = driver?.documents?.tecnoExpiry || '2027-10-15';
   const mpEmail = driver?.documents?.mpEmail || driverEmail;
 
-  // Alternar aprobación con feedback visual inline
-  const handleToggleApproval = () => {
-    toggleApprovalStatus();
-    const willBeApproved = !isApproved;
-    setFeedbackMessage(
-      willBeApproved
-        ? '¡Cuenta cambiada a APROBADA! Habilitado para recibir viajes.'
-        : 'Cuenta cambiada a EN REVISIÓN (pending_approval) para prueba de flujo.'
-    );
-    setTimeout(() => setFeedbackMessage(null), 4000);
-  };
-
   // Cambiar idioma con feedback
   const handleToggleLanguage = (newLang) => {
     if (changeLanguage) {
@@ -248,25 +236,6 @@ export function ProfileScreen({ navigation }) {
             </View>
           </View>
         </View>
-
-        {/* ENTORNO DE PRUEBAS: ALTERNAR APROBACIÓN */}
-        <Text style={styles.sectionTitle}>ENTORNO DE PRUEBAS</Text>
-        <TouchableOpacity
-          style={styles.demoToggleCard}
-          onPress={handleToggleApproval}
-          activeOpacity={0.8}
-        >
-          <View style={styles.demoIconBox}>
-            <Ionicons name="swap-horizontal" size={20} color="#D97706" />
-          </View>
-          <View style={styles.demoTextWrap}>
-            <Text style={styles.demoTitle}>Alternar Estado de Aprobación</Text>
-            <Text style={styles.demoSubtitle}>
-              Estado actual: {isApproved ? 'Aprobado (Conducir)' : 'En Revisión (PendingApproval)'}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#D97706" />
-        </TouchableOpacity>
 
         {/* BOTÓN DE CIERRE DE SESIÓN */}
         <TouchableOpacity
@@ -613,38 +582,6 @@ const styles = StyleSheet.create({
   },
   langTextActive: {
     color: colors.white,
-  },
-  demoToggleCard: {
-    backgroundColor: '#1E1B18',
-    borderRadius: 16,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    borderWidth: 1,
-    borderColor: '#78350F',
-  },
-  demoIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#451A03',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm + 2,
-  },
-  demoTextWrap: {
-    flex: 1,
-  },
-  demoTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FDE047',
-  },
-  demoSubtitle: {
-    fontSize: 11,
-    color: '#D4D4D8',
-    marginTop: 2,
   },
   logoutButton: {
     flexDirection: 'row',

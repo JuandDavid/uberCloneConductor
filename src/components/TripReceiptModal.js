@@ -36,6 +36,9 @@ export function TripReceiptModal({
   const [passengerRating, setPassengerRating] = useState(5);
   const [selectedTags, setSelectedTags] = useState(['Muy puntual']);
   const [showMpModal, setShowMpModal] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState(
+    trip?.paymentMethod && trip.paymentMethod.toLowerCase().includes('efectivo') ? 'Efectivo' : 'Mercado Pago'
+  );
   const [paymentResult, setPaymentResult] = useState(
     trip?.paymentStatus ? { paymentStatus: trip.paymentStatus, paymentId: trip.paymentId } : null
   );
@@ -45,9 +48,7 @@ export function TripReceiptModal({
   const totalFare = trip.formattedTotal || formatCOP(trip.totalFare || 18500);
   const driverEarnings = trip.formattedEarnings || formatCOP(trip.driverEarnings || 14800);
   const platformFee = trip.platformFee ? formatCOP(trip.platformFee) : formatCOP(2700);
-  const paymentMethod = trip.paymentMethod || 'Efectivo';
-  const isCash = paymentMethod.toLowerCase().includes('efectivo');
-
+  const isCash = selectedMethod === 'Efectivo';
 
   const effectiveStatus = isCash ? 'cash' : (paymentResult?.paymentStatus || trip.paymentStatus || 'pending');
   const statusBadge = formatPaymentStatusBadge(effectiveStatus);
@@ -88,6 +89,31 @@ export function TripReceiptModal({
               </Text>
             </View>
 
+            {/* SELECTOR INTERACTIVO DE MÉTODO DE PAGO */}
+            <View style={styles.methodSelectorWrap}>
+              <TouchableOpacity
+                style={[styles.methodTab, isCash ? styles.methodTabActiveCash : null]}
+                onPress={() => setSelectedMethod('Efectivo')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="cash-outline" size={16} color={isCash ? '#15803D' : '#64748B'} />
+                <Text style={[styles.methodTabText, isCash ? styles.methodTabTextActiveCash : null]}>
+                  Efectivo
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.methodTab, !isCash ? styles.methodTabActiveMp : null]}
+                onPress={() => setSelectedMethod('Mercado Pago')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="card" size={16} color={!isCash ? '#009EE3' : '#64748B'} />
+                <Text style={[styles.methodTabText, !isCash ? styles.methodTabTextActiveMp : null]}>
+                  Mercado Pago
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {/* TARJETA DE COBRO AL CLIENTE CON MERCADO PAGO */}
             <View style={[styles.paymentCard, isCash ? styles.paymentCardCash : styles.paymentCardDigital]}>
               <View style={styles.paymentMethodHeader}>
@@ -113,8 +139,22 @@ export function TripReceiptModal({
                 </Text>
               </View>
 
-              {/* INFORMACIÓN ADICIONAL DE MERCADO PAGO */}
-              {!isCash && (
+              {/* INFORMACIÓN ADICIONAL DE MERCADO PAGO O SWITCH DESDE EFECTIVO */}
+              {isCash ? (
+                <TouchableOpacity
+                  style={styles.switchMpButton}
+                  onPress={() => {
+                    setSelectedMethod('Mercado Pago');
+                    setShowMpModal(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="card" size={16} color="#009EE3" />
+                  <Text style={styles.switchMpButtonText}>
+                    ¿Cobrar con Mercado Pago en su lugar? (Sandbox)
+                  </Text>
+                </TouchableOpacity>
+              ) : (
                 <View style={styles.mpDetailsBox}>
                   {isMpApproved ? (
                     <>
@@ -233,7 +273,11 @@ export function TripReceiptModal({
             {/* BOTÓN DE ACCIÓN FINAL */}
             <TouchableOpacity
               style={styles.confirmButton}
-              onPress={() => onConfirmPayment && onConfirmPayment(paymentResult || { paymentStatus: isCash ? 'cash' : 'approved', paymentId: `PAY-${Date.now()}` })}
+              onPress={() => onConfirmPayment && onConfirmPayment(paymentResult || {
+                paymentMethod: selectedMethod,
+                paymentStatus: isCash ? 'cash' : 'approved',
+                paymentId: `PAY-${Date.now()}`
+              })}
               activeOpacity={0.85}
             >
               <Ionicons name="checkmark-done" size={22} color={colors.white} />
@@ -251,6 +295,7 @@ export function TripReceiptModal({
         trip={trip}
         onPaymentSuccess={(res) => {
           setPaymentResult(res);
+          setSelectedMethod('Mercado Pago');
           setShowMpModal(false);
         }}
         onClose={() => setShowMpModal(false)}
@@ -260,6 +305,61 @@ export function TripReceiptModal({
 }
 
 const styles = StyleSheet.create({
+  methodSelectorWrap: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: spacing.md,
+    gap: 4,
+  },
+  methodTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    borderRadius: 9,
+    gap: 6,
+  },
+  methodTabActiveCash: {
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  methodTabActiveMp: {
+    backgroundColor: '#E0F2FE',
+    borderWidth: 1,
+    borderColor: '#7DD3FC',
+  },
+  methodTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  methodTabTextActiveCash: {
+    color: '#15803D',
+  },
+  methodTabTextActiveMp: {
+    color: '#0284C7',
+  },
+  switchMpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    marginTop: 8,
+    borderRadius: 8,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  switchMpButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
 
   statusBadgeRow: {
     flexDirection: 'row',

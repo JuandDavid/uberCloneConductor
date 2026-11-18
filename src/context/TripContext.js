@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import { calculateTripFare, formatCOP } from '../config/pricing';
@@ -97,6 +97,7 @@ export function TripProvider({ children }) {
   const [activeTrip, setActiveTrip] = useState(null);
   const [dailyEarnings, setDailyEarnings] = useState(0);
   const [completedTripsCount, setCompletedTripsCount] = useState(0);
+  const demoIndexRef = useRef(0);
   const [demoIndex, setDemoIndex] = useState(0);
 
   // Sincronizar disponibilidad con Firestore en tiempo real
@@ -123,16 +124,17 @@ export function TripProvider({ children }) {
     setOnlineStatus(!isOnline);
   }, [isOnline, setOnlineStatus]);
 
-  // Generador de viajes de prueba
+  // Generador de viajes de prueba con rotación garantizada en cada solicitud
   const simulateIncomingTrip = useCallback(
     (sampleIndex) => {
       if (!isOnline) {
         setOnlineStatus(true);
       }
 
-      const idx = typeof sampleIndex === 'number' ? sampleIndex : demoIndex;
-      const sample = DEMO_TRIP_SAMPLES[idx % DEMO_TRIP_SAMPLES.length];
-      setDemoIndex((prev) => (prev + 1) % DEMO_TRIP_SAMPLES.length);
+      const currentIdx = typeof sampleIndex === 'number' ? sampleIndex : demoIndexRef.current;
+      demoIndexRef.current = (currentIdx + 1) % DEMO_TRIP_SAMPLES.length;
+      setDemoIndex(demoIndexRef.current);
+      const sample = DEMO_TRIP_SAMPLES[currentIdx % DEMO_TRIP_SAMPLES.length];
 
       const category = driver?.vehicle?.category || 'economy';
       const fareInfo = calculateTripFare(category, sample.distanceKm, sample.durationMinutes);
